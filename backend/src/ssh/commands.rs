@@ -5,14 +5,7 @@
 use crate::models::Brand;
 
 /// 支援查詢的指標名稱（固定順序）。
-pub const METRICS: [&str; 6] = [
-    "cpu",
-    "memory",
-    "module",
-    "interface",
-    "loading",
-    "traffic",
-];
+pub const METRICS: [&str; 6] = ["cpu", "memory", "module", "interface", "loading", "traffic"];
 
 /// 回傳某品牌的 (指標, 指令) 清單。
 pub fn for_brand(brand: Brand) -> Vec<(&'static str, String)> {

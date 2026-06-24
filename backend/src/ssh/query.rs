@@ -54,8 +54,15 @@ where
 
     match executor.run(target, &cmd_strs).await {
         Err(e) => {
-            let _ = snapshot::insert(pool, &id, None, "failed", Some(&e.to_string()), &Value::Null)
-                .await;
+            let _ = snapshot::insert(
+                pool,
+                &id,
+                None,
+                "failed",
+                Some(&e.to_string()),
+                &Value::Null,
+            )
+            .await;
             failed(&id, e.to_string())
         }
         Ok(outputs) => {

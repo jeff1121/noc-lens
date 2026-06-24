@@ -76,10 +76,7 @@ pub async fn assign(
 }
 
 /// 列出某設備所屬的群組。
-pub async fn groups_for_device(
-    pool: &SqlitePool,
-    device_id: &str,
-) -> Result<Vec<Group>, AppError> {
+pub async fn groups_for_device(pool: &SqlitePool, device_id: &str) -> Result<Vec<Group>, AppError> {
     let rows = sqlx::query(
         "SELECT g.* FROM device_group_tag g \
          JOIN device_group dg ON g.id = dg.group_id \

@@ -41,14 +41,18 @@ async fn create_and_get_device() {
 async fn reject_duplicate_ip() {
     let pool = setup().await;
     device::create(&pool, new_device("10.0.0.2")).await.unwrap();
-    let err = device::create(&pool, new_device("10.0.0.2")).await.unwrap_err();
+    let err = device::create(&pool, new_device("10.0.0.2"))
+        .await
+        .unwrap_err();
     assert_eq!(err.code(), "DUPLICATE_IP");
 }
 
 #[tokio::test]
 async fn reject_invalid_ip() {
     let pool = setup().await;
-    let err = device::create(&pool, new_device("not-an-ip")).await.unwrap_err();
+    let err = device::create(&pool, new_device("not-an-ip"))
+        .await
+        .unwrap_err();
     assert_eq!(err.code(), "VALIDATION");
 }
 

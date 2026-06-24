@@ -80,8 +80,20 @@ async fn run_group_job_collects_and_records() {
     assert!(run.finished_at.is_some());
 
     // 兩台設備各產生一筆快照
-    assert_eq!(snapshot::list_by_device(&pool, &d1, 10).await.unwrap().len(), 1);
-    assert_eq!(snapshot::list_by_device(&pool, &d2, 10).await.unwrap().len(), 1);
+    assert_eq!(
+        snapshot::list_by_device(&pool, &d1, 10)
+            .await
+            .unwrap()
+            .len(),
+        1
+    );
+    assert_eq!(
+        snapshot::list_by_device(&pool, &d2, 10)
+            .await
+            .unwrap()
+            .len(),
+        1
+    );
 
     // 執行紀錄可列出
     let runs = schedule::run_list(&pool, &job.id).await.unwrap();

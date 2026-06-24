@@ -68,11 +68,7 @@ pub async fn create(pool: &SqlitePool, input: NewDevice) -> Result<Device, AppEr
 }
 
 /// 更新設備（僅更新提供的欄位）。
-pub async fn update(
-    pool: &SqlitePool,
-    id: &str,
-    patch: UpdateDevice,
-) -> Result<Device, AppError> {
+pub async fn update(pool: &SqlitePool, id: &str, patch: UpdateDevice) -> Result<Device, AppError> {
     let existing = get(pool, id).await?;
 
     if let Some(ip) = &patch.ip_address {
@@ -173,8 +169,8 @@ fn validate_ip(ip: &str) -> Result<(), AppError> {
 
 fn map_device(row: &sqlx::sqlite::SqliteRow) -> Result<Device, AppError> {
     let brand_str: String = row.try_get("brand")?;
-    let brand = Brand::parse(&brand_str)
-        .ok_or_else(|| AppError::UnsupportedBrand(brand_str.clone()))?;
+    let brand =
+        Brand::parse(&brand_str).ok_or_else(|| AppError::UnsupportedBrand(brand_str.clone()))?;
     Ok(Device {
         id: row.try_get("id")?,
         ip_address: row.try_get("ip_address")?,

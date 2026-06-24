@@ -46,12 +46,12 @@ pub async fn import_csv_str(pool: &SqlitePool, content: &str) -> Result<ImportRe
         .clone();
     let col = |name: &str| headers.iter().position(|h| h.eq_ignore_ascii_case(name));
 
-    let ip_idx = col("ip_address")
-        .ok_or_else(|| AppError::Parse("缺少必要欄位 ip_address".to_string()))?;
-    let user_idx = col("username")
-        .ok_or_else(|| AppError::Parse("缺少必要欄位 username".to_string()))?;
-    let pass_idx = col("password")
-        .ok_or_else(|| AppError::Parse("缺少必要欄位 password".to_string()))?;
+    let ip_idx =
+        col("ip_address").ok_or_else(|| AppError::Parse("缺少必要欄位 ip_address".to_string()))?;
+    let user_idx =
+        col("username").ok_or_else(|| AppError::Parse("缺少必要欄位 username".to_string()))?;
+    let pass_idx =
+        col("password").ok_or_else(|| AppError::Parse("缺少必要欄位 password".to_string()))?;
     let brand_idx =
         col("brand").ok_or_else(|| AppError::Parse("缺少必要欄位 brand".to_string()))?;
     let note_idx = col("note");
@@ -127,11 +127,7 @@ pub async fn import_csv_str(pool: &SqlitePool, content: &str) -> Result<ImportRe
     Ok(result)
 }
 
-async fn assign_groups(
-    pool: &SqlitePool,
-    device_id: &str,
-    raw: &str,
-) -> Result<(), AppError> {
+async fn assign_groups(pool: &SqlitePool, device_id: &str, raw: &str) -> Result<(), AppError> {
     let mut group_ids = Vec::new();
     for name in raw.split(';').map(|s| s.trim()).filter(|s| !s.is_empty()) {
         let g = match group::find_by_name(pool, name).await? {

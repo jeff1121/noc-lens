@@ -136,14 +136,11 @@ export interface AppError {
 
 export const api = {
   // 設備
-  deviceList: (groupId?: string) =>
-    invoke<Device[]>("device_list", { group_id: groupId ?? null }),
+  deviceList: (groupId?: string) => invoke<Device[]>("device_list", { group_id: groupId ?? null }),
   deviceCreate: (input: NewDevice) => invoke<Device>("device_create", { input }),
-  deviceUpdate: (id: string, patch: UpdateDevice) =>
-    invoke<Device>("device_update", { id, patch }),
+  deviceUpdate: (id: string, patch: UpdateDevice) => invoke<Device>("device_update", { id, patch }),
   deviceDelete: (id: string) => invoke<void>("device_delete", { id }),
-  deviceImport: (content: string) =>
-    invoke<ImportResult>("device_import", { content }),
+  deviceImport: (content: string) => invoke<ImportResult>("device_import", { content }),
 
   // 群組
   groupList: () => invoke<Group[]>("group_list"),
@@ -162,8 +159,7 @@ export const api = {
 
   // 排程
   scheduleList: () => invoke<ScheduledJob[]>("schedule_list"),
-  scheduleCreate: (input: NewScheduledJob) =>
-    invoke<ScheduledJob>("schedule_create", { input }),
+  scheduleCreate: (input: NewScheduledJob) => invoke<ScheduledJob>("schedule_create", { input }),
   scheduleDelete: (id: string) => invoke<void>("schedule_delete", { id }),
   scheduleToggle: (id: string, enabled: boolean) =>
     invoke<ScheduledJob>("schedule_toggle", { id, enabled }),
@@ -177,11 +173,7 @@ export const api = {
 
   // 設定
   settingsGet: () => invoke<Settings>("settings_get"),
-  settingsSet: (p: {
-    ai_base_url?: string;
-    ai_model?: string;
-    ssh_max_concurrency?: number;
-  }) => invoke<void>("settings_set", p),
-  settingsSetAiKey: (apiKey: string) =>
-    invoke<void>("settings_set_ai_key", { api_key: apiKey }),
+  settingsSet: (p: { ai_base_url?: string; ai_model?: string; ssh_max_concurrency?: number }) =>
+    invoke<void>("settings_set", p),
+  settingsSetAiKey: (apiKey: string) => invoke<void>("settings_set_ai_key", { api_key: apiKey }),
 };

@@ -61,9 +61,15 @@ async fn generate_stores_report() {
     .await
     .unwrap();
 
-    let rpt = generate(&pool, &MockProvider, ReportScope::default(), None, Some("mock"))
-        .await
-        .unwrap();
+    let rpt = generate(
+        &pool,
+        &MockProvider,
+        ReportScope::default(),
+        None,
+        Some("mock"),
+    )
+    .await
+    .unwrap();
     assert!(rpt.summary_md.contains("設備健康摘要"));
     assert_eq!(rpt.model_endpoint.as_deref(), Some("mock"));
 

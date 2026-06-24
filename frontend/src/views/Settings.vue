@@ -62,18 +62,30 @@ async function saveKey() {
         <h3 class="font-semibold">SSH</h3>
         <div>
           <label class="block text-sm text-ink-secondary mb-1" for="conc">同時連線上限</label>
-          <input id="conc" v-model.number="form.ssh_max_concurrency" type="number" min="1" class="input w-32" />
+          <input
+            id="conc"
+            v-model.number="form.ssh_max_concurrency"
+            type="number"
+            min="1"
+            class="input w-32"
+          />
         </div>
       </section>
 
       <section class="card p-5 space-y-4">
         <h3 class="font-semibold">AI（OpenAI 相容端點）</h3>
         <p class="text-xs text-status-warning">
-          ⚠ 使用雲端端點時，設備狀態資料將離開本機；如需資料不離開本機，可指向本地服務（如 Ollama／LM Studio）。
+          ⚠ 使用雲端端點時，設備狀態資料將離開本機；如需資料不離開本機，可指向本地服務（如
+          Ollama／LM Studio）。
         </p>
         <div>
           <label class="block text-sm text-ink-secondary mb-1" for="url">Base URL</label>
-          <input id="url" v-model="form.ai_base_url" class="input" placeholder="https://api.openai.com/v1" />
+          <input
+            id="url"
+            v-model="form.ai_base_url"
+            class="input"
+            placeholder="https://api.openai.com/v1"
+          />
         </div>
         <div>
           <label class="block text-sm text-ink-secondary mb-1" for="model">模型</label>
@@ -94,7 +106,8 @@ async function saveKey() {
             <button class="btn-ghost" @click="saveKey">儲存金鑰</button>
           </div>
           <p class="text-xs mt-1" :class="aiKeySet ? 'text-status-normal' : 'text-ink-muted'">
-            狀態：{{ aiKeySet ? "已設定" : "未設定" }}<span v-if="keySaved" class="text-status-normal"> ・ 已儲存</span>
+            狀態：{{ aiKeySet ? "已設定" : "未設定"
+            }}<span v-if="keySaved" class="text-status-normal"> ・ 已儲存</span>
           </p>
         </div>
       </section>

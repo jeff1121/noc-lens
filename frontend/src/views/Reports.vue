@@ -79,9 +79,13 @@ function exportMd(r: Report) {
             <h3 class="text-lg font-semibold">{{ selected.title }}</h3>
             <button class="btn-ghost text-sm" @click="exportMd(selected)">匯出 Markdown</button>
           </div>
-          <div class="card p-5 whitespace-pre-wrap text-sm leading-relaxed font-sans">{{ selected.summary_md }}</div>
+          <div class="card p-5 whitespace-pre-wrap text-sm leading-relaxed font-sans">
+            {{ selected.summary_md }}
+          </div>
         </div>
-        <p v-else class="text-ink-muted text-sm">點右上「產生報告」開始（需先於設定填入 AI 端點與金鑰）。</p>
+        <p v-else class="text-ink-muted text-sm">
+          點右上「產生報告」開始（需先於設定填入 AI 端點與金鑰）。
+        </p>
       </section>
     </div>
   </div>

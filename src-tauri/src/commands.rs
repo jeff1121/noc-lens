@@ -154,10 +154,7 @@ pub async fn schedule_toggle(
 
 /// 立即觸發一次排程執行（供測試與手動巡檢）。
 #[tauri::command]
-pub async fn schedule_run_now(
-    state: State<'_, AppState>,
-    id: String,
-) -> Result<JobRun, AppError> {
+pub async fn schedule_run_now(state: State<'_, AppState>, id: String) -> Result<JobRun, AppError> {
     run_job_once(&state.pool, &RusshExecutor, &id).await
 }
 
@@ -178,7 +175,9 @@ pub async fn report_generate(
     title: Option<String>,
 ) -> Result<Report, AppError> {
     let pool = &state.pool;
-    let base_url = settings::get(pool, "ai.base_url").await?.unwrap_or_default();
+    let base_url = settings::get(pool, "ai.base_url")
+        .await?
+        .unwrap_or_default();
     let model = settings::get(pool, "ai.model").await?.unwrap_or_default();
     let key = crypto::get_ai_key()?;
     if base_url.trim().is_empty() || key.is_none() {
@@ -214,7 +213,9 @@ pub struct SettingsDto {
 #[tauri::command]
 pub async fn settings_get(state: State<'_, AppState>) -> Result<SettingsDto, AppError> {
     let pool = &state.pool;
-    let ai_base_url = settings::get(pool, "ai.base_url").await?.unwrap_or_default();
+    let ai_base_url = settings::get(pool, "ai.base_url")
+        .await?
+        .unwrap_or_default();
     let ai_model = settings::get(pool, "ai.model").await?.unwrap_or_default();
     let ssh_max_concurrency = settings::get(pool, "ssh.max_concurrency")
         .await?
@@ -250,6 +251,9 @@ pub async fn settings_set(
 }
 
 #[tauri::command]
-pub async fn settings_set_ai_key(_state: State<'_, AppState>, api_key: String) -> Result<(), AppError> {
+pub async fn settings_set_ai_key(
+    _state: State<'_, AppState>,
+    api_key: String,
+) -> Result<(), AppError> {
     crypto::set_ai_key(&api_key)
 }

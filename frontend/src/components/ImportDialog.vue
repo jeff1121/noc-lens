@@ -32,7 +32,8 @@ async function onFile(e: Event) {
   <div class="space-y-4">
     <p class="text-sm text-ink-secondary">
       請選擇 CSV 檔（表頭需含
-      <code class="font-mono text-ink-primary">ip_address,username,password,note,brand,groups</code>）。
+      <code class="font-mono text-ink-primary">ip_address,username,password,note,brand,groups</code
+      >）。
     </p>
 
     <label class="btn-ghost cursor-pointer w-full">
@@ -48,7 +49,10 @@ async function onFile(e: Event) {
         成功：<span class="text-status-normal font-semibold">{{ result.success }}</span> 筆，
         失敗：<span class="text-status-critical font-semibold">{{ result.failed.length }}</span> 筆
       </p>
-      <ul v-if="result.failed.length" class="text-xs text-ink-secondary space-y-1 max-h-40 overflow-auto">
+      <ul
+        v-if="result.failed.length"
+        class="text-xs text-ink-secondary space-y-1 max-h-40 overflow-auto"
+      >
         <li v-for="f in result.failed" :key="f.row">第 {{ f.row }} 列：{{ f.reason }}</li>
       </ul>
     </div>

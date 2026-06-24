@@ -138,13 +138,27 @@ onMounted(async () => {
 
       <!-- 設備資訊 -->
       <div v-if="device" class="card p-5 grid grid-cols-2 gap-4 max-w-2xl">
-        <div><span class="text-ink-muted text-sm">帳號</span><p>{{ device.username }}</p></div>
-        <div><span class="text-ink-muted text-sm">品牌</span><p>{{ brandLabel(device.brand) }}</p></div>
-        <div class="col-span-2"><span class="text-ink-muted text-sm">備註</span><p>{{ device.note || "—" }}</p></div>
+        <div>
+          <span class="text-ink-muted text-sm">帳號</span>
+          <p>{{ device.username }}</p>
+        </div>
+        <div>
+          <span class="text-ink-muted text-sm">品牌</span>
+          <p>{{ brandLabel(device.brand) }}</p>
+        </div>
+        <div class="col-span-2">
+          <span class="text-ink-muted text-sm">備註</span>
+          <p>{{ device.note || "—" }}</p>
+        </div>
         <div class="col-span-2">
           <span class="text-ink-muted text-sm">群組</span>
           <p class="flex flex-wrap gap-2 mt-1">
-            <span v-for="g in groups" :key="g.id" class="rounded-full bg-bg-raised px-2 py-0.5 text-xs">{{ g.name }}</span>
+            <span
+              v-for="g in groups"
+              :key="g.id"
+              class="rounded-full bg-bg-raised px-2 py-0.5 text-xs"
+              >{{ g.name }}</span
+            >
             <span v-if="!groups.length" class="text-ink-muted">—</span>
           </p>
         </div>
@@ -159,20 +173,38 @@ onMounted(async () => {
         <div class="flex items-center gap-3">
           <h3 class="font-semibold">最新狀態</h3>
           <StatusBadge :status="badgeStatus" />
-          <span v-if="result.error_message" class="text-sm text-status-critical">{{ result.error_message }}</span>
+          <span v-if="result.error_message" class="text-sm text-status-critical">{{
+            result.error_message
+          }}</span>
         </div>
 
-        <div v-if="result.status !== 'failed'" class="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl">
+        <div
+          v-if="result.status !== 'failed'"
+          class="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl"
+        >
           <div class="card p-3">
-            <apexchart type="radialBar" height="160" :options="gauge('CPU', '#3B82F6')" :series="[cpuPct]" />
+            <apexchart
+              type="radialBar"
+              height="160"
+              :options="gauge('CPU', '#3B82F6')"
+              :series="[cpuPct]"
+            />
           </div>
           <div class="card p-3">
-            <apexchart type="radialBar" height="160" :options="gauge('Memory', '#22C55E')" :series="[memPct]" />
+            <apexchart
+              type="radialBar"
+              height="160"
+              :options="gauge('Memory', '#22C55E')"
+              :series="[memPct]"
+            />
           </div>
           <div class="card p-4 col-span-2 grid grid-cols-2 gap-3 text-sm">
             <div>
               <span class="text-ink-muted">介面</span>
-              <p>{{ result.metrics?.interface?.up ?? "—" }} up / {{ result.metrics?.interface?.down ?? "—" }} down</p>
+              <p>
+                {{ result.metrics?.interface?.up ?? "—" }} up /
+                {{ result.metrics?.interface?.down ?? "—" }} down
+              </p>
             </div>
             <div>
               <span class="text-ink-muted">Module</span>
@@ -193,7 +225,12 @@ onMounted(async () => {
       <!-- 歷史趨勢 -->
       <div v-if="history.length" class="card p-5 max-w-4xl">
         <h3 class="font-semibold mb-3">CPU 歷史趨勢（最近 {{ history.length }} 次）</h3>
-        <apexchart type="line" height="240" :options="historyChart.options" :series="historyChart.series" />
+        <apexchart
+          type="line"
+          height="240"
+          :options="historyChart.options"
+          :series="historyChart.series"
+        />
       </div>
       <p v-else class="text-sm text-ink-muted">尚無歷史資料，點「即時查詢」開始收集。</p>
     </div>

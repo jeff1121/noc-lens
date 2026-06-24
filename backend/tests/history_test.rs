@@ -31,9 +31,16 @@ async fn snapshots_listed_newest_first() {
     .id;
 
     for pct in [10.0, 20.0, 30.0] {
-        snapshot::insert(&pool, &id, None, "ok", None, &json!({ "cpu": { "usage_percent": pct } }))
-            .await
-            .unwrap();
+        snapshot::insert(
+            &pool,
+            &id,
+            None,
+            "ok",
+            None,
+            &json!({ "cpu": { "usage_percent": pct } }),
+        )
+        .await
+        .unwrap();
         tokio::time::sleep(std::time::Duration::from_millis(5)).await;
     }
 

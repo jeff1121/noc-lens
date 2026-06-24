@@ -11,7 +11,11 @@ const emit = defineEmits<{ (e: "close"): void }>();
     <div class="card w-full max-w-lg p-6 shadow-2xl">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold">{{ title }}</h3>
-        <button class="text-ink-muted hover:text-ink-primary cursor-pointer" aria-label="關閉" @click="emit('close')">
+        <button
+          class="text-ink-muted hover:text-ink-primary cursor-pointer"
+          aria-label="關閉"
+          @click="emit('close')"
+        >
           ✕
         </button>
       </div>

@@ -59,7 +59,11 @@ impl SshExecutor for FailExecutor {
         _t: SshTarget<'_>,
         _c: &[String],
     ) -> impl Future<Output = Result<Vec<CmdOutput>, noc_lens_backend::AppError>> + Send {
-        async { Err(noc_lens_backend::AppError::Validation("連線逾時".to_string())) }
+        async {
+            Err(noc_lens_backend::AppError::Validation(
+                "連線逾時".to_string(),
+            ))
+        }
     }
 }
 
@@ -71,7 +75,10 @@ async fn query_success_writes_snapshot() {
     let results = run_query(&pool, &OkExecutor, &[id.clone()], 4).await;
     assert_eq!(results.len(), 1);
     assert_eq!(results[0].status, "ok");
-    assert_eq!(results[0].metrics.as_ref().unwrap()["cpu"]["usage_percent"], 42.0);
+    assert_eq!(
+        results[0].metrics.as_ref().unwrap()["cpu"]["usage_percent"],
+        42.0
+    );
 
     // 應已寫入一筆快照。
     let snaps = db::snapshot::list_by_device(&pool, &id, 10).await.unwrap();

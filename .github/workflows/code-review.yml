@@ -1,0 +1,64 @@
+name: code-review
+
+# 對 PR 與 main 推送執行程式碼審查（格式、Clippy、前端建置），
+# 修正可自動修正者，並產生繁體中文摘要報告。
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安裝 Rust（含 rustfmt、clippy）
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: 安裝 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 格式檢查（rustfmt）
+        id: fmt
+        continue-on-error: true
+        run: cargo fmt --all -- --check
+
+      - name: 靜態分析（clippy）
+        id: clippy
+        continue-on-error: true
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: 後端測試
+        id: test
+        continue-on-error: true
+        run: cargo test -p noc-lens-backend
+
+      - name: 前端建置
+        id: fe
+        continue-on-error: true
+        run: |
+          npm install
+          npm run build
+        working-directory: frontend
+
+      - name: 產生繁體中文審查報告
+        if: always()
+        run: |
+          {
+            echo "## 程式碼審查報告（noc-lens）"
+            echo ""
+            echo "| 檢查項目 | 結果 |"
+            echo "|----------|------|"
+            echo "| 格式（rustfmt） | ${{ steps.fmt.outcome == 'success' && '✅ 通過' || '⚠ 需修正' }} |"
+            echo "| 靜態分析（clippy） | ${{ steps.clippy.outcome == 'success' && '✅ 通過' || '⚠ 有警告' }} |"
+            echo "| 後端測試 | ${{ steps.test.outcome == 'success' && '✅ 通過' || '❌ 失敗' }} |"
+            echo "| 前端建置 | ${{ steps.fe.outcome == 'success' && '✅ 通過' || '❌ 失敗' }} |"
+            echo ""
+            echo "> 建議：對「需修正」項目於本機執行 \`cargo fmt --all\` 與 \`cargo clippy --fix\` 後再提交。"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -18,10 +18,7 @@ fn main() {
     tauri::Builder::default()
         .setup(|app| {
             // 於應用資料目錄建立本地資料庫
-            let dir = app
-                .path()
-                .app_data_dir()
-                .expect("無法取得應用資料目錄");
+            let dir = app.path().app_data_dir().expect("無法取得應用資料目錄");
             std::fs::create_dir_all(&dir).ok();
             let db_path = dir.join("noc-lens.db");
 

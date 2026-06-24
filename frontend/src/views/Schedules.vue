@@ -107,10 +107,14 @@ const scheduleDesc = (j: ScheduledJob) =>
           <select v-model="form.target_id" class="input">
             <option value="">選擇目標…</option>
             <template v-if="form.target_type === 'group'">
-              <option v-for="g in groupsStore.groups" :key="g.id" :value="g.id">{{ g.name }}</option>
+              <option v-for="g in groupsStore.groups" :key="g.id" :value="g.id">
+                {{ g.name }}
+              </option>
             </template>
             <template v-else>
-              <option v-for="d in devicesStore.devices" :key="d.id" :value="d.id">{{ d.ip_address }}</option>
+              <option v-for="d in devicesStore.devices" :key="d.id" :value="d.id">
+                {{ d.ip_address }}
+              </option>
             </template>
           </select>
           <select v-model="form.schedule_kind" class="input">
@@ -139,7 +143,10 @@ const scheduleDesc = (j: ScheduledJob) =>
             <div>
               <p class="font-medium">
                 {{ j.name }}
-                <span class="text-xs ml-2" :class="j.enabled ? 'text-status-normal' : 'text-ink-muted'">
+                <span
+                  class="text-xs ml-2"
+                  :class="j.enabled ? 'text-status-normal' : 'text-ink-muted'"
+                >
                   {{ j.enabled ? "啟用中" : "已停用" }}
                 </span>
               </p>
@@ -147,16 +154,24 @@ const scheduleDesc = (j: ScheduledJob) =>
             </div>
             <div class="flex gap-2">
               <button class="btn-ghost text-xs" @click="runNow(j)">立即執行</button>
-              <button class="btn-ghost text-xs" @click="toggle(j)">{{ j.enabled ? "停用" : "啟用" }}</button>
-              <button class="text-xs text-ink-secondary hover:text-status-critical cursor-pointer" @click="remove(j)">刪除</button>
+              <button class="btn-ghost text-xs" @click="toggle(j)">
+                {{ j.enabled ? "停用" : "啟用" }}
+              </button>
+              <button
+                class="text-xs text-ink-secondary hover:text-status-critical cursor-pointer"
+                @click="remove(j)"
+              >
+                刪除
+              </button>
             </div>
           </div>
           <div v-if="runs[j.id]?.length" class="mt-3 text-xs text-ink-secondary space-y-1">
             <p class="text-ink-muted">最近執行：</p>
             <p v-for="r in runs[j.id].slice(0, 3)" :key="r.id">
-              {{ r.started_at.slice(0, 16).replace("T", " ") }} ・
-              成功 <span class="text-status-normal">{{ r.success_count }}</span> /
-              失敗 <span class="text-status-critical">{{ r.failure_count }}</span>（共 {{ r.total }}）
+              {{ r.started_at.slice(0, 16).replace("T", " ") }} ・ 成功
+              <span class="text-status-normal">{{ r.success_count }}</span> / 失敗
+              <span class="text-status-critical">{{ r.failure_count }}</span
+              >（共 {{ r.total }}）
             </p>
           </div>
         </div>

@@ -33,8 +33,8 @@ description: "Task list for noc-lens network device monitoring"
 - [x] T002 [P] 初始化 `frontend/`（Vue 3 + Vite + TypeScript），安裝 Pinia、vue-router、Tailwind CSS、vue3-apexcharts、vue-virtual-scroller in frontend/package.json
 - [x] T003 [P] 初始化 `src-tauri/`（Tauri 2，`tauri.conf.json` 設定 `frontendDist` 指向 frontend、bundle 目標 macOS/Windows）in src-tauri/
 - [x] T004 [P] 初始化 `backend/` Rust 函式庫 crate，加入 tokio、russh、sqlx(SQLite)、tokio-cron-scheduler、keyring、aes-gcm、reqwest、serde in backend/Cargo.toml
-- [ ] T005 [P] 設定 lint/format：Rust（rustfmt.toml、clippy）與前端（ESLint、Prettier）in repo 根與 frontend/
-- [ ] T006 [P] 初始化 `e2e/` Playwright（設定 head 模式執行）in e2e/playwright.config.ts
+- [x] T005 [P] 設定 lint/format：Rust（rustfmt.toml、clippy）與前端（ESLint、Prettier）in repo 根與 frontend/
+- [x] T006 [P] 初始化 `e2e/` Playwright（設定 head 模式執行）in e2e/playwright.config.ts
 
 **Checkpoint**: 專案可建置、可啟動空殼 `cargo tauri dev`
 
@@ -169,17 +169,17 @@ description: "Task list for noc-lens network device monitoring"
 
 **Purpose**: 跨故事的品質、發行與自動化
 
-- [ ] T057 [P] GitHub Actions：跨平台建置與發行（matrix `macos-latest` + `windows-latest`，產出 .dmg/.app 與 .msi/.exe 並上傳 GitHub Releases）in .github/workflows/release.yml
-- [ ] T058 [P] GitHub Actions：程式碼審查工作流程 → 修正問題 + 摘要 + 產生報告（**zh-TW**）in .github/workflows/code-review.yml
-- [ ] T059 [P] GitHub Actions：CodeQL 安全掃描 → 修正問題 + 摘要 + 產生報告（**zh-TW**）in .github/workflows/codeql.yml
-- [ ] T060 [P] README（shields.io 版本徽章、專案說明，**zh-TW**）in README.md
-- [ ] T061 [P] 提交訊息規範（詳細、**zh-TW**）與 commit template in docs/commit-guideline.md、.gitmessage
-- [ ] T062 [P] 應用程式圖示與 Tauri bundle 設定（macOS/Windows，含 Release 圖示）in src-tauri/icons/、src-tauri/tauri.conf.json
+- [x] T057 [P] GitHub Actions：跨平台建置與發行（matrix `macos-latest` + `windows-latest`，產出 .dmg/.app 與 .msi/.exe 並上傳 GitHub Releases）in .github/workflows/release.yml
+- [x] T058 [P] GitHub Actions：程式碼審查工作流程 → 修正問題 + 摘要 + 產生報告（**zh-TW**）in .github/workflows/code-review.yml
+- [x] T059 [P] GitHub Actions：CodeQL 安全掃描 → 修正問題 + 摘要 + 產生報告（**zh-TW**）in .github/workflows/codeql.yml
+- [x] T060 [P] README（shields.io 版本徽章、專案說明，**zh-TW**）in README.md
+- [x] T061 [P] 提交訊息規範（詳細、**zh-TW**）與 commit template in docs/commit-guideline.md、.gitmessage
+- [x] T062 [P] 應用程式圖示與 Tauri bundle 設定（macOS/Windows，含 Release 圖示）in src-tauri/icons/、src-tauri/tauri.conf.json
 - [ ] T063 效能驗證：設備清單虛擬捲動 ~60fps、UI 互動 p95 < 200ms、SSH 併發上限（量測並記錄）對齊 plan Performance Goals
-- [ ] T064 安全強化複查：密碼於 UI/log/匯出報告皆不明文外露、金鑰僅存 keyring（FR-023/024、OWASP A02）
-- [ ] T065 [P] docs/ 補充（架構說明、品牌指令對應，**zh-TW**）in docs/
+- [x] T064 安全強化複查：密碼於 UI/log/匯出報告皆不明文外露、金鑰僅存 keyring（FR-023/024、OWASP A02）
+- [x] T065 [P] docs/ 補充（架構說明、品牌指令對應，**zh-TW**）in docs/
 - [ ] T066 執行 [quickstart.md](./quickstart.md) 全情境驗證（US1–US4）
-- [ ] T067 以 `gh repo create` 建立 GitHub 儲存庫並推送、啟用 Release 頁面（**需使用者授權後執行**）
+- [x] T067 以 `gh repo create` 建立 GitHub 儲存庫並推送、啟用 Release 頁面（**需使用者授權後執行**）
 
 ---
 

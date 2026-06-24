@@ -47,7 +47,11 @@ pub async fn create(pool: &SqlitePool, input: NewScheduledJob) -> Result<Schedul
     get(pool, &id).await
 }
 
-pub async fn set_enabled(pool: &SqlitePool, id: &str, enabled: bool) -> Result<ScheduledJob, AppError> {
+pub async fn set_enabled(
+    pool: &SqlitePool,
+    id: &str,
+    enabled: bool,
+) -> Result<ScheduledJob, AppError> {
     let r = sqlx::query("UPDATE scheduled_job SET enabled = ? WHERE id = ?")
         .bind(if enabled { 1 } else { 0 })
         .bind(id)
@@ -76,12 +80,18 @@ fn validate(input: &NewScheduledJob) -> Result<(), AppError> {
     }
     match input.target_type.as_str() {
         "device" | "group" => {}
-        _ => return Err(AppError::Validation("target_type 須為 device 或 group".to_string())),
+        _ => {
+            return Err(AppError::Validation(
+                "target_type 須為 device 或 group".to_string(),
+            ))
+        }
     }
     match input.schedule_kind.as_str() {
         "interval" => {
             if input.interval_minutes.unwrap_or(0) <= 0 {
-                return Err(AppError::Validation("interval_minutes 須大於 0".to_string()));
+                return Err(AppError::Validation(
+                    "interval_minutes 須大於 0".to_string(),
+                ));
             }
         }
         "daily" => {
@@ -89,7 +99,11 @@ fn validate(input: &NewScheduledJob) -> Result<(), AppError> {
                 return Err(AppError::Validation("daily_time 須為 HH:mm".to_string()));
             }
         }
-        _ => return Err(AppError::Validation("schedule_kind 須為 interval 或 daily".to_string())),
+        _ => {
+            return Err(AppError::Validation(
+                "schedule_kind 須為 interval 或 daily".to_string(),
+            ))
+        }
     }
     Ok(())
 }

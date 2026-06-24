@@ -35,12 +35,7 @@ async function remove(id: string, name: string) {
 
     <div class="px-6 py-4 space-y-4 max-w-xl">
       <div class="flex gap-2">
-        <input
-          v-model="newName"
-          class="input"
-          placeholder="新增群組名稱…"
-          @keyup.enter="add"
-        />
+        <input v-model="newName" class="input" placeholder="新增群組名稱…" @keyup.enter="add" />
         <button class="btn-primary" @click="add">新增</button>
       </div>
       <p v-if="error" class="text-sm text-status-critical">{{ error }}</p>
@@ -52,7 +47,10 @@ async function remove(id: string, name: string) {
           class="flex items-center justify-between px-4 py-3"
         >
           <span>{{ g.name }}</span>
-          <button class="text-xs text-ink-secondary hover:text-status-critical cursor-pointer" @click="remove(g.id, g.name)">
+          <button
+            class="text-xs text-ink-secondary hover:text-status-critical cursor-pointer"
+            @click="remove(g.id, g.name)"
+          >
             刪除
           </button>
         </div>

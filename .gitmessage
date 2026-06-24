@@ -1,0 +1,7 @@
+<type>(<scope>): <簡述，繁體中文>
+
+# 本文（為何變更、做了什麼、影響）：
+# - 
+# 
+# type: feat / fix / docs / refactor / test / chore / perf / style
+# scope: us1 / us2 / us3 / us4 / backend / frontend / ci（選填）

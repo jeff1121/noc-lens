@@ -77,8 +77,7 @@ fn to_key_array(bytes: &[u8]) -> Result<[u8; 32], AppError> {
 /// 將明文加密為 `nonce(12) || ciphertext` 位元組。
 pub fn encrypt(plain: &str) -> Result<Vec<u8>, AppError> {
     let key = master_key()?;
-    let cipher =
-        Aes256Gcm::new_from_slice(&key).map_err(|e| AppError::Crypto(e.to_string()))?;
+    let cipher = Aes256Gcm::new_from_slice(&key).map_err(|e| AppError::Crypto(e.to_string()))?;
     let mut nonce_bytes = [0u8; NONCE_LEN];
     OsRng.fill_bytes(&mut nonce_bytes);
     let nonce = Nonce::from_slice(&nonce_bytes);
@@ -96,8 +95,7 @@ pub fn decrypt(data: &[u8]) -> Result<String, AppError> {
         return Err(AppError::Crypto("密文長度不足".to_string()));
     }
     let key = master_key()?;
-    let cipher =
-        Aes256Gcm::new_from_slice(&key).map_err(|e| AppError::Crypto(e.to_string()))?;
+    let cipher = Aes256Gcm::new_from_slice(&key).map_err(|e| AppError::Crypto(e.to_string()))?;
     let (nonce_bytes, ciphertext) = data.split_at(NONCE_LEN);
     let nonce = Nonce::from_slice(nonce_bytes);
     let plain = cipher

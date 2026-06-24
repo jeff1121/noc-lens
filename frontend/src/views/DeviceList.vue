@@ -23,9 +23,7 @@ onMounted(async () => {
   await Promise.all([groupsStore.fetch(), devicesStore.fetch()]);
 });
 
-const isEmpty = computed(
-  () => !devicesStore.loading && devicesStore.devices.length === 0,
-);
+const isEmpty = computed(() => !devicesStore.loading && devicesStore.devices.length === 0);
 
 async function applyFilter() {
   await devicesStore.fetch(filterGroup.value || undefined);
@@ -129,8 +127,18 @@ async function onImportDone() {
             <span class="text-ink-secondary">{{ brandLabel(item.brand) }}</span>
             <span class="text-ink-muted truncate">{{ item.note || "—" }}</span>
             <span class="flex justify-end gap-2">
-              <button class="text-xs text-ink-secondary hover:text-brand cursor-pointer" @click="openEdit(item)">編輯</button>
-              <button class="text-xs text-ink-secondary hover:text-status-critical cursor-pointer" @click="onDelete(item)">刪除</button>
+              <button
+                class="text-xs text-ink-secondary hover:text-brand cursor-pointer"
+                @click="openEdit(item)"
+              >
+                編輯
+              </button>
+              <button
+                class="text-xs text-ink-secondary hover:text-status-critical cursor-pointer"
+                @click="onDelete(item)"
+              >
+                刪除
+              </button>
             </span>
           </div>
         </RecycleScroller>

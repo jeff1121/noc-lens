@@ -1,0 +1,49 @@
+name: codeql
+
+# 對前端（JavaScript/TypeScript）執行 CodeQL 安全掃描，並產生繁體中文摘要。
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    strategy:
+      matrix:
+        language: ["javascript-typescript"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 初始化 CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: 自動建置
+        uses: github/codeql-action/autobuild@v3
+
+      - name: 執行分析
+        id: analyze
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+      - name: 產生繁體中文安全掃描摘要
+        if: always()
+        run: |
+          {
+            echo "## CodeQL 安全掃描摘要"
+            echo ""
+            echo "- 語言：${{ matrix.language }}"
+            echo "- 結果：${{ steps.analyze.outcome == 'success' && '✅ 已完成，詳見 Security 分頁的程式碼掃描警示' || '❌ 掃描未完成' }}"
+            echo ""
+            echo "> 發現的弱點請於 GitHub 「Security → Code scanning」檢視並修正（OWASP Top 10）。"
+          } >> "$GITHUB_STEP_SUMMARY"
