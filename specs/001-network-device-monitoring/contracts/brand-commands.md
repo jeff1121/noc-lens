@@ -2,20 +2,22 @@
 
 **功能**：[../spec.md](../spec.md) ｜ **日期**：2026-06-24
 
-各品牌以不同 CLI 指令取得相同指標。後端 `backend/src/ssh/` 依品牌套用對應指令並解析輸出為統一 `metrics_json`（見 [../data-model.md](../data-model.md)）。下表為**指令對應草案**，實際指令於實作時依韌體版本校正；不適用者標示「n/a」（FR-010）。
+各品牌以不同 CLI 指令取得相同指標。後端 `backend/src/ssh/` 依品牌套用對應指令並解析輸出為統一 `metrics_json`（見 [../data-model.md](../data-model.md)）。下表指令依各品牌官方「日常維護」文件選定（見 `docs/cisco-cmd.md`、`docs/aruba-cmd.md`、`docs/fortigate-cmd.md`、`docs/palo-alto-cmd.md`）；不適用者標示「n/a」（FR-010）。
 
 > 安全：僅執行唯讀查詢指令，禁止任何組態變更（FR-009）。
 
-## 指標 → 品牌指令對照（草案）
+## 指標 → 品牌指令對照
 
-| 指標 | Cisco (IOS/IOS-XE/NX-OS) | Aruba (AOS-CX/Switch) | Fortigate-NGFW | Palo Alto (PAN-OS) |
-|------|--------------------------|------------------------|----------------|--------------------|
-| CPU | `show processes cpu` / `show system resources` | `show system resource-utilization` | `get system performance status` | `show system resources` |
-| Memory | `show memory statistics` / `show system resources` | `show system resource-utilization` | `get system performance status` | `show system resources` |
-| module | `show module` | `show modules` | `get system status`（模組/授權） | `show system environmentals` |
-| interface | `show ip interface brief` / `show interfaces status` | `show interface brief` | `get system interface` | `show interface all` |
-| loading | `show processes cpu`（load avg） | `show system resource-utilization` | `get system performance status`（load） | `show system resources`（load） |
-| traffic | `show interfaces counters` / `show interface <if>` | `show interface <if>` | `get system interface`（counters）/ `diagnose` | `show counter interface all` |
+| 指標 | Cisco (IOS/IOS-XE/NX-OS) | Aruba (AOS-CX) | Fortigate-NGFW (FortiOS) | Palo Alto (PAN-OS) |
+|------|--------------------------|----------------|--------------------------|--------------------|
+| CPU | `show processes cpu sorted` | `show system resource-utilization` | `get system performance status` | `show system resources` |
+| Memory | `show processes memory sorted` | `show system resource-utilization` | `get system performance status` | `show system resources` |
+| module | `show inventory` | `show environment` | `get system status` | `show system environmentals` |
+| interface | `show ip interface brief` | `show interface brief` | `get system interface physical` | `show interface all` |
+| loading | `show processes cpu sorted` | `show system resource-utilization` | `get system performance status` | `show system resources` |
+| traffic | `show interfaces counters` | `show interface` | `diagnose netlink interface list` | `show interface hardware` |
+
+> 此對照已實作於 [../../../backend/src/ssh/commands.rs](../../../backend/src/ssh/commands.rs)。
 
 ## 解析輸出契約
 
