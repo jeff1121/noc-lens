@@ -1,0 +1,10 @@
+# noc-lens 工作區（Cargo workspace）
+# 成員：backend（核心函式庫）、src-tauri（Tauri 殼層）
+[workspace]
+members = ["backend", "src-tauri"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+license = "MIT"

@@ -29,10 +29,10 @@ description: "Task list for noc-lens network device monitoring"
 
 **Purpose**: 專案初始化與基本結構
 
-- [ ] T001 建立 Cargo workspace 根結構與 `Cargo.toml`（workspace 成員：`src-tauri`、`backend`），並建立 `frontend/`、`e2e/`、`infra/`、`docs/`、`.github/workflows/` 目錄骨架，per [plan.md](./plan.md)
-- [ ] T002 [P] 初始化 `frontend/`（Vue 3 + Vite + TypeScript），安裝 Pinia、vue-router、Tailwind CSS、vue3-apexcharts、vue-virtual-scroller in frontend/package.json
-- [ ] T003 [P] 初始化 `src-tauri/`（Tauri 2，`tauri.conf.json` 設定 `frontendDist` 指向 frontend、bundle 目標 macOS/Windows）in src-tauri/
-- [ ] T004 [P] 初始化 `backend/` Rust 函式庫 crate，加入 tokio、russh、sqlx(SQLite)、tokio-cron-scheduler、keyring、aes-gcm、reqwest、serde in backend/Cargo.toml
+- [x] T001 建立 Cargo workspace 根結構與 `Cargo.toml`（workspace 成員：`src-tauri`、`backend`），並建立 `frontend/`、`e2e/`、`infra/`、`docs/`、`.github/workflows/` 目錄骨架，per [plan.md](./plan.md)
+- [x] T002 [P] 初始化 `frontend/`（Vue 3 + Vite + TypeScript），安裝 Pinia、vue-router、Tailwind CSS、vue3-apexcharts、vue-virtual-scroller in frontend/package.json
+- [x] T003 [P] 初始化 `src-tauri/`（Tauri 2，`tauri.conf.json` 設定 `frontendDist` 指向 frontend、bundle 目標 macOS/Windows）in src-tauri/
+- [x] T004 [P] 初始化 `backend/` Rust 函式庫 crate，加入 tokio、russh、sqlx(SQLite)、tokio-cron-scheduler、keyring、aes-gcm、reqwest、serde in backend/Cargo.toml
 - [ ] T005 [P] 設定 lint/format：Rust（rustfmt.toml、clippy）與前端（ESLint、Prettier）in repo 根與 frontend/
 - [ ] T006 [P] 初始化 `e2e/` Playwright（設定 head 模式執行）in e2e/playwright.config.ts
 
@@ -46,15 +46,15 @@ description: "Task list for noc-lens network device monitoring"
 
 **⚠️ CRITICAL**: 本階段完成前，任何使用者故事不得開工
 
-- [ ] T007 建立 SQLite schema 與 sqlx migrations（Device、Group、DeviceGroup、StatusSnapshot、ScheduledJob、JobRun、Report、AppSetting）per [data-model.md](./data-model.md) in backend/src/db/migrations/
-- [ ] T008 [P] 定義領域模型與列舉（含 `Brand` enum：cisco/aruba/fortigate_ngfw/palo_alto）in backend/src/models/
-- [ ] T009 [P] 實作統一錯誤型別 `AppError`（code 列舉 + zh-TW message）in backend/src/error.rs
-- [ ] T010 [P] 實作 crypto 模組：keyring 主金鑰管理 + AES-256-GCM 密碼加解密（FR-023/024）in backend/src/crypto/mod.rs
-- [ ] T011 實作 DB 連線初始化與 repository 基礎 helper（依賴 T007）in backend/src/db/mod.rs
-- [ ] T012 建立 src-tauri 指令註冊骨架與 `AppError` 序列化對應（invoke handler、main.rs 啟動 backend 狀態）in src-tauri/src/main.rs、src-tauri/src/commands/mod.rs
-- [ ] T013 [P] 前端基礎骨架：vue-router（6 畫面占位：DeviceList/DeviceDetail/Groups/Schedules/Reports/Settings）、Pinia 根、Tauri `invoke` 封裝 in frontend/src/{router,stores,api}/
-- [ ] T014 [P] 前端設計 token 與版面：Tailwind 深色 (OLED) 主題、狀態色（critical `#EF4444`/warning `#F59E0B`/normal `#22C55E`/updating `#3B82F6`）、Fira Code/Fira Sans 字型、Sidebar+Content 版面、SVG 圖示，per [research.md](./research.md) §9 in frontend/src/styles/、frontend/src/layouts/
-- [ ] T015 [P] AppSetting 存取與一般設定指令（settings_get/settings_set，含 ssh_max_concurrency）per [contracts/tauri-commands.md](./contracts/tauri-commands.md) in backend/src/db/settings.rs、src-tauri/src/commands/settings.rs
+- [x] T007 建立 SQLite schema 與 sqlx migrations（Device、Group、DeviceGroup、StatusSnapshot、ScheduledJob、JobRun、Report、AppSetting）per [data-model.md](./data-model.md) in backend/src/db/migrations/
+- [x] T008 [P] 定義領域模型與列舉（含 `Brand` enum：cisco/aruba/fortigate_ngfw/palo_alto）in backend/src/models/
+- [x] T009 [P] 實作統一錯誤型別 `AppError`（code 列舉 + zh-TW message）in backend/src/error.rs
+- [x] T010 [P] 實作 crypto 模組：keyring 主金鑰管理 + AES-256-GCM 密碼加解密（FR-023/024）in backend/src/crypto/mod.rs
+- [x] T011 實作 DB 連線初始化與 repository 基礎 helper（依賴 T007）in backend/src/db/mod.rs
+- [x] T012 建立 src-tauri 指令註冊骨架與 `AppError` 序列化對應（invoke handler、main.rs 啟動 backend 狀態）in src-tauri/src/main.rs、src-tauri/src/commands/mod.rs
+- [x] T013 [P] 前端基礎骨架：vue-router（6 畫面占位：DeviceList/DeviceDetail/Groups/Schedules/Reports/Settings）、Pinia 根、Tauri `invoke` 封裝 in frontend/src/{router,stores,api}/
+- [x] T014 [P] 前端設計 token 與版面：Tailwind 深色 (OLED) 主題、狀態色（critical `#EF4444`/warning `#F59E0B`/normal `#22C55E`/updating `#3B82F6`）、Fira Code/Fira Sans 字型、Sidebar+Content 版面、SVG 圖示，per [research.md](./research.md) §9 in frontend/src/styles/、frontend/src/layouts/
+- [x] T015 [P] AppSetting 存取與一般設定指令（settings_get/settings_set，含 ssh_max_concurrency）per [contracts/tauri-commands.md](./contracts/tauri-commands.md) in backend/src/db/settings.rs、src-tauri/src/commands/settings.rs
 
 **Checkpoint**: 基礎就緒，使用者故事可開始平行開發
 
@@ -68,22 +68,22 @@ description: "Task list for noc-lens network device monitoring"
 
 ### Tests for User Story 1 ⚠️（先寫、先失敗）
 
-- [ ] T016 [P] [US1] backend 整合測試：Device CRUD + 重複 IP + 不支援品牌 in backend/tests/device_test.rs
-- [ ] T017 [P] [US1] backend 整合測試：CSV 匯入（成功/失敗逐列回報）in backend/tests/import_test.rs
-- [ ] T018 [P] [US1] backend 整合測試：Group CRUD + 多對多指派 + 依群組篩選 in backend/tests/group_test.rs
+- [x] T016 [P] [US1] backend 整合測試：Device CRUD + 重複 IP + 不支援品牌 in backend/tests/device_test.rs
+- [x] T017 [P] [US1] backend 整合測試：CSV 匯入（成功/失敗逐列回報）in backend/tests/import_test.rs
+- [x] T018 [P] [US1] backend 整合測試：Group CRUD + 多對多指派 + 依群組篩選 in backend/tests/group_test.rs
 
 ### Implementation for User Story 1
 
-- [ ] T019 [P] [US1] Device repository（list/create/update/delete，寫入時密碼加密）in backend/src/db/device.rs
-- [ ] T020 [P] [US1] Group repository（list/create/delete/assign，DeviceGroup 多對多）in backend/src/db/group.rs
-- [ ] T021 [US1] CSV 匯入服務（解析、欄位驗證、重複 IP/品牌檢查、逐列結果）依賴 T019 in backend/src/services/import.rs
-- [ ] T022 [US1] Tauri 指令：device_list/device_create/device_update/device_delete/device_import in src-tauri/src/commands/device.rs
-- [ ] T023 [US1] Tauri 指令：group_list/group_create/group_delete/group_assign in src-tauri/src/commands/group.rs
-- [ ] T024 [P] [US1] 前端 DeviceList 畫面（vue-virtual-scroller 表格、多選、群組篩選、狀態徽章占位、skeleton）in frontend/src/views/DeviceList.vue
-- [ ] T025 [P] [US1] 前端 設備新增/編輯表單元件（驗證、品牌下拉、密碼欄、focus/對比合規）in frontend/src/components/DeviceForm.vue
-- [ ] T026 [P] [US1] 前端 群組管理畫面（建立/刪除/指派）in frontend/src/views/Groups.vue
-- [ ] T027 [US1] 前端 匯入對話框（選檔、呼叫 device_import、成功/失敗結果列表）in frontend/src/components/ImportDialog.vue
-- [ ] T028 [US1] 前端 Pinia store：devices、groups in frontend/src/stores/{devices,groups}.ts
+- [x] T019 [P] [US1] Device repository（list/create/update/delete，寫入時密碼加密）in backend/src/db/device.rs
+- [x] T020 [P] [US1] Group repository（list/create/delete/assign，DeviceGroup 多對多）in backend/src/db/group.rs
+- [x] T021 [US1] CSV 匯入服務（解析、欄位驗證、重複 IP/品牌檢查、逐列結果）依賴 T019 in backend/src/services/import.rs
+- [x] T022 [US1] Tauri 指令：device_list/device_create/device_update/device_delete/device_import in src-tauri/src/commands/device.rs
+- [x] T023 [US1] Tauri 指令：group_list/group_create/group_delete/group_assign in src-tauri/src/commands/group.rs
+- [x] T024 [P] [US1] 前端 DeviceList 畫面（vue-virtual-scroller 表格、多選、群組篩選、狀態徽章占位、skeleton）in frontend/src/views/DeviceList.vue
+- [x] T025 [P] [US1] 前端 設備新增/編輯表單元件（驗證、品牌下拉、密碼欄、focus/對比合規）in frontend/src/components/DeviceForm.vue
+- [x] T026 [P] [US1] 前端 群組管理畫面（建立/刪除/指派）in frontend/src/views/Groups.vue
+- [x] T027 [US1] 前端 匯入對話框（選檔、呼叫 device_import、成功/失敗結果列表）in frontend/src/components/ImportDialog.vue
+- [x] T028 [US1] 前端 Pinia store：devices、groups in frontend/src/stores/{devices,groups}.ts
 - [ ] T029 [US1] E2E（head）：匯入 → 指派群組 → 依群組篩選 in e2e/us1.spec.ts
 
 **Checkpoint**: US1 可獨立運作並通過測試（MVP 可交付）

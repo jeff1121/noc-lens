@@ -1,0 +1,31 @@
+# Rust / Cargo
+/target
+**/target
+Cargo.lock
+
+# Node / 前端
+node_modules/
+frontend/dist/
+frontend/node_modules/
+*.log
+
+# Tauri 產物
+src-tauri/target/
+src-tauri/gen/
+
+# 本地資料庫與環境
+*.db
+*.db-shm
+*.db-wal
+.env*
+
+# 系統與編輯器
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+
+# E2E
+e2e/node_modules/
+e2e/test-results/
+e2e/playwright-report/

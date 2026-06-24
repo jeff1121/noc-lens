@@ -1,0 +1,36 @@
+[package]
+name = "noc-lens-backend"
+version = "0.1.0"
+edition = "2021"
+description = "noc-lens 核心函式庫：設備管理、SSH 查詢、排程、加密儲存與 AI 摘要"
+
+[lib]
+name = "noc_lens_backend"
+path = "src/lib.rs"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "migrate"] }
+thiserror = "2"
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+csv = "1"
+aes-gcm = "0.10"
+rand = "0.8"
+base64 = "0.22"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+keyring = { version = "3", features = ["apple-native"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+keyring = { version = "3", features = ["windows-native"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+keyring = { version = "3", features = ["sync-secret-service"] }
+
+[dev-dependencies]
+tempfile = "3"
+base64 = "0.22"
+uuid = { version = "1", features = ["v4"] }
