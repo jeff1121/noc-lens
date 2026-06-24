@@ -98,18 +98,18 @@ description: "Task list for noc-lens network device monitoring"
 
 ### Tests for User Story 2 ⚠️（先寫、先失敗）
 
-- [ ] T030 [P] [US2] backend 單元測試：各品牌輸出解析器（cisco/aruba/fortigate_ngfw/palo_alto，含 n/a 指標）in backend/tests/parser_test.rs
-- [ ] T031 [P] [US2] backend 整合測試：查詢流程（成功/認證失敗/逾時、併發上限、逐台回報）以 mock SSH in backend/tests/query_test.rs
+- [x] T030 [P] [US2] backend 單元測試：各品牌輸出解析器（cisco/aruba/fortigate_ngfw/palo_alto，含 n/a 指標）in backend/tests/parser_test.rs
+- [x] T031 [P] [US2] backend 整合測試：查詢流程（成功/認證失敗/逾時、併發上限、逐台回報）以 mock SSH in backend/tests/query_test.rs
 
 ### Implementation for User Story 2
 
-- [ ] T032 [P] [US2] SSH 客戶端（russh，密碼認證、執行唯讀指令、逾時控制）in backend/src/ssh/client.rs
-- [ ] T033 [P] [US2] 品牌指令對應表 per [contracts/brand-commands.md](./contracts/brand-commands.md) in backend/src/ssh/commands.rs
-- [ ] T034 [US2] 各品牌輸出解析器 → metrics_json（不適用標 `n/a`，FR-010）依賴 T033 in backend/src/ssh/parsers/
-- [ ] T035 [US2] 查詢編排服務（tokio Semaphore 併發上限、逐台成功/失敗、寫入 StatusSnapshot）依賴 T032、T034 in backend/src/ssh/query.rs
-- [ ] T036 [US2] Tauri 指令：query_devices per [contracts/tauri-commands.md](./contracts/tauri-commands.md) in src-tauri/src/commands/query.rs
-- [ ] T037 [P] [US2] 前端 DeviceDetail 畫面（結構化狀態、ApexCharts gauge=CPU/Mem、line=trend、skeleton 載入）in frontend/src/views/DeviceDetail.vue
-- [ ] T038 [US2] 前端 即時查詢觸發與逐台結果/錯誤呈現（DeviceList 多選查詢 + DeviceDetail）in frontend/src/views/DeviceList.vue、frontend/src/stores/query.ts
+- [x] T032 [P] [US2] SSH 客戶端（russh，密碼認證、執行唯讀指令、逾時控制）in backend/src/ssh/client.rs
+- [x] T033 [P] [US2] 品牌指令對應表 per [contracts/brand-commands.md](./contracts/brand-commands.md) in backend/src/ssh/commands.rs
+- [x] T034 [US2] 各品牌輸出解析器 → metrics_json（不適用標 `n/a`，FR-010）依賴 T033 in backend/src/ssh/parsers/
+- [x] T035 [US2] 查詢編排服務（tokio Semaphore 併發上限、逐台成功/失敗、寫入 StatusSnapshot）依賴 T032、T034 in backend/src/ssh/query.rs
+- [x] T036 [US2] Tauri 指令：query_devices per [contracts/tauri-commands.md](./contracts/tauri-commands.md) in src-tauri/src/commands/query.rs
+- [x] T037 [P] [US2] 前端 DeviceDetail 畫面（結構化狀態、ApexCharts gauge=CPU/Mem、line=trend、skeleton 載入）in frontend/src/views/DeviceDetail.vue
+- [x] T038 [US2] 前端 即時查詢觸發與逐台結果/錯誤呈現（DeviceList 多選查詢 + DeviceDetail）in frontend/src/views/DeviceList.vue、frontend/src/stores/query.ts
 - [ ] T039 [US2] E2E（head）：對設備執行即時查詢並檢視狀態結果 in e2e/us2.spec.ts
 
 **Checkpoint**: US1 與 US2 皆可獨立運作

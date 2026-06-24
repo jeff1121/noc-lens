@@ -20,6 +20,10 @@ csv = "1"
 aes-gcm = "0.10"
 rand = "0.8"
 base64 = "0.22"
+futures = "0.3"
+regex = "1"
+russh = "0.45"
+async-trait = "0.1"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 keyring = { version = "3", features = ["apple-native"] }

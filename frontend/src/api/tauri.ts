@@ -61,6 +61,26 @@ export interface Settings {
   ai_key_set: boolean;
 }
 
+export type Metrics = Record<string, any>;
+
+export interface QueryResult {
+  device_id: string;
+  status: "ok" | "partial" | "failed";
+  error_message?: string | null;
+  metrics?: Metrics | null;
+  snapshot_id?: string | null;
+}
+
+export interface StatusSnapshot {
+  id: string;
+  device_id: string;
+  job_run_id?: string | null;
+  collected_at: string;
+  status: string;
+  error_message?: string | null;
+  metrics: Metrics;
+}
+
 /** 後端錯誤格式（AppError 序列化）。 */
 export interface AppError {
   code: string;
@@ -86,6 +106,12 @@ export const api = {
     invoke<void>("group_assign", { device_id: deviceId, group_ids: groupIds }),
   groupsForDevice: (deviceId: string) =>
     invoke<Group[]>("groups_for_device", { device_id: deviceId }),
+
+  // 即時查詢與歷史
+  queryDevices: (deviceIds: string[]) =>
+    invoke<QueryResult[]>("query_devices", { device_ids: deviceIds }),
+  snapshotList: (deviceId: string, limit?: number) =>
+    invoke<StatusSnapshot[]>("snapshot_list", { device_id: deviceId, limit: limit ?? null }),
 
   // 設定
   settingsGet: () => invoke<Settings>("settings_get"),

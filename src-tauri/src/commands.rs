@@ -3,9 +3,11 @@
 //! 對應 contracts/tauri-commands.md。所有指令回傳 `Result<T, AppError>`，
 //! `AppError` 會序列化為 `{ code, message }`。
 
-use noc_lens_backend::db::{device, group, settings};
-use noc_lens_backend::models::{Device, Group, NewDevice, UpdateDevice};
+use noc_lens_backend::db::{device, group, settings, snapshot};
+use noc_lens_backend::models::{Device, Group, NewDevice, QueryResult, StatusSnapshot, UpdateDevice};
 use noc_lens_backend::services::import::{self, ImportResult};
+use noc_lens_backend::ssh::client::RusshExecutor;
+use noc_lens_backend::ssh::run_query;
 use noc_lens_backend::AppError;
 use serde::Serialize;
 use tauri::State;
@@ -84,6 +86,29 @@ pub async fn groups_for_device(
     device_id: String,
 ) -> Result<Vec<Group>, AppError> {
     group::groups_for_device(&state.pool, &device_id).await
+}
+
+// ---- 即時查詢（SSH）----
+
+#[tauri::command]
+pub async fn query_devices(
+    state: State<'_, AppState>,
+    device_ids: Vec<String>,
+) -> Result<Vec<QueryResult>, AppError> {
+    let conc = settings::get(&state.pool, "ssh.max_concurrency")
+        .await?
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(10);
+    Ok(run_query(&state.pool, &RusshExecutor, &device_ids, conc).await)
+}
+
+#[tauri::command]
+pub async fn snapshot_list(
+    state: State<'_, AppState>,
+    device_id: String,
+    limit: Option<i64>,
+) -> Result<Vec<StatusSnapshot>, AppError> {
+    snapshot::list_by_device(&state.pool, &device_id, limit.unwrap_or(50)).await
 }
 
 // ---- 設定（Settings）----

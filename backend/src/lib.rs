@@ -8,6 +8,7 @@ pub mod db;
 pub mod error;
 pub mod models;
 pub mod services;
+pub mod ssh;
 
 pub use error::AppError;
 pub use sqlx::SqlitePool;

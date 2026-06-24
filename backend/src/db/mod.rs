@@ -3,6 +3,7 @@
 pub mod device;
 pub mod group;
 pub mod settings;
+pub mod snapshot;
 
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use sqlx::SqlitePool;

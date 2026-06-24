@@ -42,6 +42,8 @@ fn main() {
             commands::group_delete,
             commands::group_assign,
             commands::groups_for_device,
+            commands::query_devices,
+            commands::snapshot_list,
             commands::settings_get,
             commands::settings_set,
         ])

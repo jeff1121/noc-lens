@@ -74,3 +74,27 @@ pub struct Group {
     pub name: String,
     pub created_at: String,
 }
+
+/// 狀態快照（某次查詢取得的設備狀態）。
+#[derive(Debug, Clone, Serialize)]
+pub struct StatusSnapshot {
+    pub id: String,
+    pub device_id: String,
+    pub job_run_id: Option<String>,
+    pub collected_at: String,
+    /// `ok` / `partial` / `failed`
+    pub status: String,
+    pub error_message: Option<String>,
+    /// 結構化指標（CPU/Memory/module/interface/loading/traffic）。
+    pub metrics: serde_json::Value,
+}
+
+/// 即時查詢單台設備的結果（對應 contracts/tauri-commands.md 之 QueryResult）。
+#[derive(Debug, Clone, Serialize)]
+pub struct QueryResult {
+    pub device_id: String,
+    pub status: String,
+    pub error_message: Option<String>,
+    pub metrics: Option<serde_json::Value>,
+    pub snapshot_id: Option<String>,
+}
