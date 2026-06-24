@@ -60,8 +60,11 @@ fn main() {
             commands::schedule_toggle,
             commands::schedule_run_now,
             commands::job_run_list,
+            commands::report_generate,
+            commands::report_list,
             commands::settings_get,
             commands::settings_set,
+            commands::settings_set_ai_key,
         ])
         .run(tauri::generate_context!())
         .expect("啟動 noc-lens 失敗");

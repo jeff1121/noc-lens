@@ -112,6 +112,22 @@ export interface JobRun {
   failure_count: number;
 }
 
+export interface Report {
+  id: string;
+  title: string;
+  scope_json: string;
+  summary_md: string;
+  generated_at: string;
+  model_endpoint?: string | null;
+}
+
+export interface ReportScope {
+  device_ids?: string[] | null;
+  group_ids?: string[] | null;
+  from?: string | null;
+  to?: string | null;
+}
+
 /** 後端錯誤格式（AppError 序列化）。 */
 export interface AppError {
   code: string;
@@ -154,6 +170,11 @@ export const api = {
   scheduleRunNow: (id: string) => invoke<JobRun>("schedule_run_now", { id }),
   jobRunList: (jobId: string) => invoke<JobRun[]>("job_run_list", { job_id: jobId }),
 
+  // AI 報告
+  reportGenerate: (scope: ReportScope, title?: string) =>
+    invoke<Report>("report_generate", { scope, title: title ?? null }),
+  reportList: () => invoke<Report[]>("report_list"),
+
   // 設定
   settingsGet: () => invoke<Settings>("settings_get"),
   settingsSet: (p: {
@@ -161,4 +182,6 @@ export const api = {
     ai_model?: string;
     ssh_max_concurrency?: number;
   }) => invoke<void>("settings_set", p),
+  settingsSetAiKey: (apiKey: string) =>
+    invoke<void>("settings_set_ai_key", { api_key: apiKey }),
 };

@@ -28,6 +28,10 @@ pub enum AppError {
     Crypto(String),
     #[error("金鑰庫錯誤：{0}")]
     Keyring(String),
+    #[error("AI 設定缺漏：{0}")]
+    AiConfigMissing(String),
+    #[error("AI 服務不可用：{0}")]
+    AiUnavailable(String),
 }
 
 impl AppError {
@@ -44,6 +48,8 @@ impl AppError {
             AppError::Parse(_) => "PARSE_ERROR",
             AppError::Crypto(_) => "CRYPTO_ERROR",
             AppError::Keyring(_) => "KEYRING_ERROR",
+            AppError::AiConfigMissing(_) => "AI_CONFIG_MISSING",
+            AppError::AiUnavailable(_) => "AI_UNAVAILABLE",
         }
     }
 }

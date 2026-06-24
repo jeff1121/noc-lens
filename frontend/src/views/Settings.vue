@@ -4,7 +4,9 @@ import { api } from "../api/tauri";
 
 const form = reactive({ ai_base_url: "", ai_model: "", ssh_max_concurrency: 10 });
 const aiKeySet = ref(false);
+const apiKey = ref("");
 const saved = ref(false);
+const keySaved = ref(false);
 const error = ref<string | null>(null);
 
 onMounted(async () => {
@@ -29,6 +31,20 @@ async function save() {
       ssh_max_concurrency: form.ssh_max_concurrency,
     });
     saved.value = true;
+  } catch (e: any) {
+    error.value = e?.message ?? String(e);
+  }
+}
+
+async function saveKey() {
+  error.value = null;
+  keySaved.value = false;
+  if (!apiKey.value) return;
+  try {
+    await api.settingsSetAiKey(apiKey.value);
+    apiKey.value = "";
+    aiKeySet.value = true;
+    keySaved.value = true;
   } catch (e: any) {
     error.value = e?.message ?? String(e);
   }
@@ -63,10 +79,24 @@ async function save() {
           <label class="block text-sm text-ink-secondary mb-1" for="model">模型</label>
           <input id="model" v-model="form.ai_model" class="input" placeholder="gpt-4o-mini" />
         </div>
-        <p class="text-xs text-ink-muted">
-          API 金鑰設定（存於 OS 金鑰庫）將於 AI 報告功能（US4）提供。目前狀態：
-          {{ aiKeySet ? "已設定" : "未設定" }}
-        </p>
+        <div>
+          <label class="block text-sm text-ink-secondary mb-1" for="key">
+            API 金鑰（存於 OS 金鑰庫）
+          </label>
+          <div class="flex gap-2">
+            <input
+              id="key"
+              v-model="apiKey"
+              type="password"
+              class="input"
+              :placeholder="aiKeySet ? '已設定（輸入可覆寫）' : '輸入 API 金鑰'"
+            />
+            <button class="btn-ghost" @click="saveKey">儲存金鑰</button>
+          </div>
+          <p class="text-xs mt-1" :class="aiKeySet ? 'text-status-normal' : 'text-ink-muted'">
+            狀態：{{ aiKeySet ? "已設定" : "未設定" }}<span v-if="keySaved" class="text-status-normal"> ・ 已儲存</span>
+          </p>
+        </div>
       </section>
 
       <div class="flex items-center gap-3">

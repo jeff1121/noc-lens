@@ -149,16 +149,16 @@ description: "Task list for noc-lens network device monitoring"
 
 ### Tests for User Story 4 ⚠️（先寫、先失敗）
 
-- [ ] T049 [P] [US4] backend 整合測試：report_generate（彙整去敏感欄位、AI_CONFIG_MISSING、AI_UNAVAILABLE）以 mock 端點 in backend/tests/ai_test.rs
+- [x] T049 [P] [US4] backend 整合測試：report_generate（彙整去敏感欄位、AI_CONFIG_MISSING、AI_UNAVAILABLE）以 mock 端點 in backend/tests/ai_test.rs
 
 ### Implementation for User Story 4
 
-- [ ] T050 [P] [US4] AI 客戶端（reqwest，OpenAI 相容端點，base URL + 金鑰）in backend/src/ai/client.rs
-- [ ] T051 [US4] 報告彙整與生成服務（scope → 精簡 JSON、排除密碼/金鑰、summary_md、存 Report）per [contracts/ai-report.md](./contracts/ai-report.md) 依賴 T050 in backend/src/ai/report.rs
-- [ ] T052 [US4] AI 金鑰寫入 keyring：settings_set_ai_key；settings_get 回傳 ai_key_set（不回傳金鑰，FR-024）in src-tauri/src/commands/settings.rs
-- [ ] T053 [US4] Tauri 指令：report_generate/report_list/report_export（md/pdf）in src-tauri/src/commands/report.rs
-- [ ] T054 [P] [US4] 前端 Reports 畫面（產生、檢視 Markdown、匯出）in frontend/src/views/Reports.vue
-- [ ] T055 [P] [US4] 前端 Settings 畫面（AI base_url/model/金鑰、SSH 併發、雲端隱私提示，FR-027）in frontend/src/views/Settings.vue
+- [x] T050 [P] [US4] AI 客戶端（reqwest，OpenAI 相容端點，base URL + 金鑰）in backend/src/ai/client.rs
+- [x] T051 [US4] 報告彙整與生成服務（scope → 精簡 JSON、排除密碼/金鑰、summary_md、存 Report）per [contracts/ai-report.md](./contracts/ai-report.md) 依賴 T050 in backend/src/ai/report.rs
+- [x] T052 [US4] AI 金鑰寫入 keyring：settings_set_ai_key；settings_get 回傳 ai_key_set（不回傳金鑰，FR-024）in src-tauri/src/commands/settings.rs
+- [x] T053 [US4] Tauri 指令：report_generate/report_list/report_export（md/pdf）in src-tauri/src/commands/report.rs
+- [x] T054 [P] [US4] 前端 Reports 畫面（產生、檢視 Markdown、匯出）in frontend/src/views/Reports.vue
+- [x] T055 [P] [US4] 前端 Settings 畫面（AI base_url/model/金鑰、SSH 併發、雲端隱私提示，FR-027）in frontend/src/views/Settings.vue
 - [ ] T056 [US4] E2E（head）：設定 AI → 產生報告 → 匯出 in e2e/us4.spec.ts
 
 **Checkpoint**: 四個使用者故事皆可獨立運作

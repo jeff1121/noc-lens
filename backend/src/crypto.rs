@@ -106,6 +106,28 @@ pub fn decrypt(data: &[u8]) -> Result<String, AppError> {
     String::from_utf8(plain).map_err(|e| AppError::Crypto(e.to_string()))
 }
 
+const AI_KEY_ACCOUNT: &str = "ai-api-key";
+
+/// 將 AI API 金鑰存入 OS 金鑰庫（不寫入資料庫）。
+pub fn set_ai_key(key: &str) -> Result<(), AppError> {
+    let entry = keyring::Entry::new(KEYRING_SERVICE, AI_KEY_ACCOUNT)
+        .map_err(|e| AppError::Keyring(e.to_string()))?;
+    entry
+        .set_password(key)
+        .map_err(|e| AppError::Keyring(e.to_string()))
+}
+
+/// 由 OS 金鑰庫讀取 AI API 金鑰；未設定時回傳 `None`。
+pub fn get_ai_key() -> Result<Option<String>, AppError> {
+    let entry = keyring::Entry::new(KEYRING_SERVICE, AI_KEY_ACCOUNT)
+        .map_err(|e| AppError::Keyring(e.to_string()))?;
+    match entry.get_password() {
+        Ok(k) => Ok(Some(k)),
+        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(e) => Err(AppError::Keyring(e.to_string())),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

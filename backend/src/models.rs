@@ -137,3 +137,23 @@ pub struct JobRun {
     pub success_count: i64,
     pub failure_count: i64,
 }
+
+/// AI 報告。
+#[derive(Debug, Clone, Serialize)]
+pub struct Report {
+    pub id: String,
+    pub title: String,
+    pub scope_json: String,
+    pub summary_md: String,
+    pub generated_at: String,
+    pub model_endpoint: Option<String>,
+}
+
+/// 報告引用範圍。
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct ReportScope {
+    pub device_ids: Option<Vec<String>>,
+    pub group_ids: Option<Vec<String>>,
+    pub from: Option<String>,
+    pub to: Option<String>,
+}

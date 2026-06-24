@@ -3,10 +3,12 @@
 //! 對應 contracts/tauri-commands.md。所有指令回傳 `Result<T, AppError>`，
 //! `AppError` 會序列化為 `{ code, message }`。
 
-use noc_lens_backend::db::{device, group, schedule, settings, snapshot};
+use noc_lens_backend::ai::{self, OpenAiProvider};
+use noc_lens_backend::crypto;
+use noc_lens_backend::db::{device, group, report, schedule, settings, snapshot};
 use noc_lens_backend::models::{
-    Device, Group, JobRun, NewDevice, NewScheduledJob, QueryResult, ScheduledJob, StatusSnapshot,
-    UpdateDevice,
+    Device, Group, JobRun, NewDevice, NewScheduledJob, QueryResult, Report, ReportScope,
+    ScheduledJob, StatusSnapshot, UpdateDevice,
 };
 use noc_lens_backend::scheduler::run_job_once;
 use noc_lens_backend::services::import::{self, ImportResult};
@@ -167,6 +169,37 @@ pub async fn job_run_list(
     schedule::run_list(&state.pool, &job_id).await
 }
 
+// ---- AI 報告（Report）----
+
+#[tauri::command]
+pub async fn report_generate(
+    state: State<'_, AppState>,
+    scope: ReportScope,
+    title: Option<String>,
+) -> Result<Report, AppError> {
+    let pool = &state.pool;
+    let base_url = settings::get(pool, "ai.base_url").await?.unwrap_or_default();
+    let model = settings::get(pool, "ai.model").await?.unwrap_or_default();
+    let key = crypto::get_ai_key()?;
+    if base_url.trim().is_empty() || key.is_none() {
+        return Err(AppError::AiConfigMissing(
+            "請先於設定填入 AI 端點與金鑰".to_string(),
+        ));
+    }
+    let model = if model.trim().is_empty() {
+        "gpt-4o-mini".to_string()
+    } else {
+        model
+    };
+    let provider = OpenAiProvider::new(base_url.clone(), key.unwrap(), model);
+    ai::generate(pool, &provider, scope, title, Some(&base_url)).await
+}
+
+#[tauri::command]
+pub async fn report_list(state: State<'_, AppState>) -> Result<Vec<Report>, AppError> {
+    report::list(&state.pool).await
+}
+
 // ---- 設定（Settings）----
 
 /// 設定檢視（不含敏感金鑰本身，僅回報是否已設定）。
@@ -187,11 +220,12 @@ pub async fn settings_get(state: State<'_, AppState>) -> Result<SettingsDto, App
         .await?
         .and_then(|v| v.parse::<u32>().ok())
         .unwrap_or(10);
+    let ai_key_set = crypto::get_ai_key().map(|k| k.is_some()).unwrap_or(false);
     Ok(SettingsDto {
         ai_base_url,
         ai_model,
         ssh_max_concurrency,
-        ai_key_set: false,
+        ai_key_set,
     })
 }
 
@@ -213,4 +247,9 @@ pub async fn settings_set(
         settings::set(pool, "ssh.max_concurrency", &v.to_string()).await?;
     }
     Ok(())
+}
+
+#[tauri::command]
+pub async fn settings_set_ai_key(_state: State<'_, AppState>, api_key: String) -> Result<(), AppError> {
+    crypto::set_ai_key(&api_key)
 }

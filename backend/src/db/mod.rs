@@ -2,6 +2,7 @@
 
 pub mod device;
 pub mod group;
+pub mod report;
 pub mod schedule;
 pub mod settings;
 pub mod snapshot;
