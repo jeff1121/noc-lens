@@ -3,8 +3,12 @@
 //! 對應 contracts/tauri-commands.md。所有指令回傳 `Result<T, AppError>`，
 //! `AppError` 會序列化為 `{ code, message }`。
 
-use noc_lens_backend::db::{device, group, settings, snapshot};
-use noc_lens_backend::models::{Device, Group, NewDevice, QueryResult, StatusSnapshot, UpdateDevice};
+use noc_lens_backend::db::{device, group, schedule, settings, snapshot};
+use noc_lens_backend::models::{
+    Device, Group, JobRun, NewDevice, NewScheduledJob, QueryResult, ScheduledJob, StatusSnapshot,
+    UpdateDevice,
+};
+use noc_lens_backend::scheduler::run_job_once;
 use noc_lens_backend::services::import::{self, ImportResult};
 use noc_lens_backend::ssh::client::RusshExecutor;
 use noc_lens_backend::ssh::run_query;
@@ -109,6 +113,58 @@ pub async fn snapshot_list(
     limit: Option<i64>,
 ) -> Result<Vec<StatusSnapshot>, AppError> {
     snapshot::list_by_device(&state.pool, &device_id, limit.unwrap_or(50)).await
+}
+
+// ---- 排程（Schedule）----
+
+#[tauri::command]
+pub async fn schedule_list(state: State<'_, AppState>) -> Result<Vec<ScheduledJob>, AppError> {
+    schedule::list(&state.pool).await
+}
+
+#[tauri::command]
+pub async fn schedule_create(
+    state: State<'_, AppState>,
+    input: NewScheduledJob,
+) -> Result<ScheduledJob, AppError> {
+    let job = schedule::create(&state.pool, input).await?;
+    state.scheduler.reload().await?;
+    Ok(job)
+}
+
+#[tauri::command]
+pub async fn schedule_delete(state: State<'_, AppState>, id: String) -> Result<(), AppError> {
+    schedule::delete(&state.pool, &id).await?;
+    state.scheduler.reload().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn schedule_toggle(
+    state: State<'_, AppState>,
+    id: String,
+    enabled: bool,
+) -> Result<ScheduledJob, AppError> {
+    let job = schedule::set_enabled(&state.pool, &id, enabled).await?;
+    state.scheduler.reload().await?;
+    Ok(job)
+}
+
+/// 立即觸發一次排程執行（供測試與手動巡檢）。
+#[tauri::command]
+pub async fn schedule_run_now(
+    state: State<'_, AppState>,
+    id: String,
+) -> Result<JobRun, AppError> {
+    run_job_once(&state.pool, &RusshExecutor, &id).await
+}
+
+#[tauri::command]
+pub async fn job_run_list(
+    state: State<'_, AppState>,
+    job_id: String,
+) -> Result<Vec<JobRun>, AppError> {
+    schedule::run_list(&state.pool, &job_id).await
 }
 
 // ---- 設定（Settings）----

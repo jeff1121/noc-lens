@@ -81,6 +81,37 @@ export interface StatusSnapshot {
   metrics: Metrics;
 }
 
+export interface ScheduledJob {
+  id: string;
+  name: string;
+  target_type: "device" | "group";
+  target_id: string;
+  schedule_kind: "interval" | "daily";
+  interval_minutes?: number | null;
+  daily_time?: string | null;
+  enabled: boolean;
+  created_at: string;
+}
+
+export interface NewScheduledJob {
+  name: string;
+  target_type: "device" | "group";
+  target_id: string;
+  schedule_kind: "interval" | "daily";
+  interval_minutes?: number | null;
+  daily_time?: string | null;
+}
+
+export interface JobRun {
+  id: string;
+  job_id: string;
+  started_at: string;
+  finished_at?: string | null;
+  total: number;
+  success_count: number;
+  failure_count: number;
+}
+
 /** 後端錯誤格式（AppError 序列化）。 */
 export interface AppError {
   code: string;
@@ -112,6 +143,16 @@ export const api = {
     invoke<QueryResult[]>("query_devices", { device_ids: deviceIds }),
   snapshotList: (deviceId: string, limit?: number) =>
     invoke<StatusSnapshot[]>("snapshot_list", { device_id: deviceId, limit: limit ?? null }),
+
+  // 排程
+  scheduleList: () => invoke<ScheduledJob[]>("schedule_list"),
+  scheduleCreate: (input: NewScheduledJob) =>
+    invoke<ScheduledJob>("schedule_create", { input }),
+  scheduleDelete: (id: string) => invoke<void>("schedule_delete", { id }),
+  scheduleToggle: (id: string, enabled: boolean) =>
+    invoke<ScheduledJob>("schedule_toggle", { id, enabled }),
+  scheduleRunNow: (id: string) => invoke<JobRun>("schedule_run_now", { id }),
+  jobRunList: (jobId: string) => invoke<JobRun[]>("job_run_list", { job_id: jobId }),
 
   // 設定
   settingsGet: () => invoke<Settings>("settings_get"),

@@ -98,3 +98,42 @@ pub struct QueryResult {
     pub metrics: Option<serde_json::Value>,
     pub snapshot_id: Option<String>,
 }
+
+/// 排程工作。
+#[derive(Debug, Clone, Serialize)]
+pub struct ScheduledJob {
+    pub id: String,
+    pub name: String,
+    /// `device` 或 `group`
+    pub target_type: String,
+    pub target_id: String,
+    /// `interval` 或 `daily`
+    pub schedule_kind: String,
+    pub interval_minutes: Option<i64>,
+    pub daily_time: Option<String>,
+    pub enabled: bool,
+    pub created_at: String,
+}
+
+/// 建立排程的輸入。
+#[derive(Debug, Clone, Deserialize)]
+pub struct NewScheduledJob {
+    pub name: String,
+    pub target_type: String,
+    pub target_id: String,
+    pub schedule_kind: String,
+    pub interval_minutes: Option<i64>,
+    pub daily_time: Option<String>,
+}
+
+/// 排程執行紀錄。
+#[derive(Debug, Clone, Serialize)]
+pub struct JobRun {
+    pub id: String,
+    pub job_id: String,
+    pub started_at: String,
+    pub finished_at: Option<String>,
+    pub total: i64,
+    pub success_count: i64,
+    pub failure_count: i64,
+}

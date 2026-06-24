@@ -124,17 +124,17 @@ description: "Task list for noc-lens network device monitoring"
 
 ### Tests for User Story 3 ⚠️（先寫、先失敗）
 
-- [ ] T040 [P] [US3] backend 整合測試：排程建立/觸發/JobRun 成功失敗統計、快照寫入、重啟後保留 in backend/tests/schedule_test.rs
-- [ ] T041 [P] [US3] backend 整合測試：snapshot_list 依 collected_at 排序 in backend/tests/history_test.rs
+- [x] T040 [P] [US3] backend 整合測試：排程建立/觸發/JobRun 成功失敗統計、快照寫入、重啟後保留 in backend/tests/schedule_test.rs
+- [x] T041 [P] [US3] backend 整合測試：snapshot_list 依 collected_at 排序 in backend/tests/history_test.rs
 
 ### Implementation for User Story 3
 
-- [ ] T042 [P] [US3] ScheduledJob/JobRun repository in backend/src/db/schedule.rs
-- [ ] T043 [US3] 排程器（tokio-cron-scheduler，interval/daily，呼叫 US2 查詢服務、寫 JobRun + snapshots、重疊保護）依賴 T035、T042 in backend/src/scheduler/mod.rs
-- [ ] T044 [US3] Tauri 指令：schedule_list/create/update/delete/toggle、job_run_list、snapshot_list in src-tauri/src/commands/schedule.rs
-- [ ] T045 [P] [US3] 前端 Schedules 畫面（建立 interval/daily、啟用切換、執行紀錄明細）in frontend/src/views/Schedules.vue
-- [ ] T046 [P] [US3] 前端 設備歷史趨勢分頁（時間序列 line chart）in frontend/src/views/DeviceDetail.vue
-- [ ] T047 [US3] 前端 Pinia store：schedules、history in frontend/src/stores/{schedules,history}.ts
+- [x] T042 [P] [US3] ScheduledJob/JobRun repository in backend/src/db/schedule.rs
+- [x] T043 [US3] 排程器（tokio-cron-scheduler，interval/daily，呼叫 US2 查詢服務、寫 JobRun + snapshots、重疊保護）依賴 T035、T042 in backend/src/scheduler/mod.rs
+- [x] T044 [US3] Tauri 指令：schedule_list/create/update/delete/toggle、job_run_list、snapshot_list in src-tauri/src/commands/schedule.rs
+- [x] T045 [P] [US3] 前端 Schedules 畫面（建立 interval/daily、啟用切換、執行紀錄明細）in frontend/src/views/Schedules.vue
+- [x] T046 [P] [US3] 前端 設備歷史趨勢分頁（時間序列 line chart）in frontend/src/views/DeviceDetail.vue
+- [x] T047 [US3] 前端 Pinia store：schedules、history in frontend/src/stores/{schedules,history}.ts
 - [ ] T048 [US3] E2E（head）：建立排程 → 觸發 → 檢視歷史 in e2e/us3.spec.ts
 
 **Checkpoint**: US1/US2/US3 皆可獨立運作

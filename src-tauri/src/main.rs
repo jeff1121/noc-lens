@@ -4,12 +4,14 @@
 mod commands;
 
 use noc_lens_backend::db;
+use noc_lens_backend::scheduler::SchedulerService;
 use noc_lens_backend::SqlitePool;
 use tauri::Manager;
 
 /// 應用程式共享狀態。
 pub struct AppState {
     pub pool: SqlitePool,
+    pub scheduler: SchedulerService,
 }
 
 fn main() {
@@ -28,7 +30,15 @@ fn main() {
             })
             .expect("初始化資料庫失敗");
 
-            app.manage(AppState { pool });
+            // 建立並啟動排程服務
+            let scheduler = tauri::async_runtime::block_on(async {
+                let svc = SchedulerService::new(pool.clone()).await?;
+                svc.start().await?;
+                Ok::<_, noc_lens_backend::AppError>(svc)
+            })
+            .expect("初始化排程服務失敗");
+
+            app.manage(AppState { pool, scheduler });
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -44,6 +54,12 @@ fn main() {
             commands::groups_for_device,
             commands::query_devices,
             commands::snapshot_list,
+            commands::schedule_list,
+            commands::schedule_create,
+            commands::schedule_delete,
+            commands::schedule_toggle,
+            commands::schedule_run_now,
+            commands::job_run_list,
             commands::settings_get,
             commands::settings_set,
         ])
