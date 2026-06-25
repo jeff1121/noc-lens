@@ -3,6 +3,7 @@
 //! - `run_job_once`：單次執行（核心邏輯，可用 mock 執行器測試）。
 //! - `SchedulerService`：以 tokio-cron-scheduler 註冊定時觸發。
 
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use tokio::sync::Mutex;
@@ -13,7 +14,7 @@ use crate::error::AppError;
 use crate::models::{JobRun, ScheduledJob};
 use crate::ssh::client::RusshExecutor;
 use crate::ssh::executor::SshExecutor;
-use crate::ssh::run_query;
+use crate::ssh::{run_query, DEFAULT_QUERY_CONCURRENCY};
 use crate::SqlitePool;
 
 /// 解析排程目標為設備 id 清單。
@@ -48,7 +49,7 @@ where
     let conc = settings::get(pool, "ssh.max_concurrency")
         .await?
         .and_then(|v| v.parse::<usize>().ok())
-        .unwrap_or(10);
+        .unwrap_or(DEFAULT_QUERY_CONCURRENCY);
 
     let results = run_query(pool, executor, &device_ids, conc).await;
     let success = results.iter().filter(|r| r.status != "failed").count() as i64;
@@ -85,6 +86,7 @@ pub struct SchedulerService {
     sched: JobScheduler,
     pool: SqlitePool,
     job_uuids: Arc<Mutex<Vec<uuid::Uuid>>>,
+    running_jobs: Arc<Mutex<HashSet<String>>>,
 }
 
 impl SchedulerService {
@@ -96,6 +98,7 @@ impl SchedulerService {
             sched,
             pool,
             job_uuids: Arc::new(Mutex::new(Vec::new())),
+            running_jobs: Arc::new(Mutex::new(HashSet::new())),
         })
     }
 
@@ -122,11 +125,20 @@ impl SchedulerService {
             let Some(cron) = cron_for(&job) else { continue };
             let pool = self.pool.clone();
             let job_id = job.id.clone();
+            let running_jobs = self.running_jobs.clone();
             let j = Job::new_async(cron.as_str(), move |_uuid, _l| {
                 let pool = pool.clone();
                 let job_id = job_id.clone();
+                let running_jobs = running_jobs.clone();
                 Box::pin(async move {
+                    {
+                        let mut guard = running_jobs.lock().await;
+                        if !guard.insert(job_id.clone()) {
+                            return;
+                        }
+                    }
                     let _ = run_job_once(&pool, &RusshExecutor, &job_id).await;
+                    running_jobs.lock().await.remove(&job_id);
                 })
             })
             .map_err(|e| AppError::Db(format!("建立排程失敗：{e}")))?;

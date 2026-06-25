@@ -7,7 +7,6 @@ use noc_lens_backend::models::{Brand, NewDevice, NewScheduledJob};
 use noc_lens_backend::scheduler::run_job_once;
 use noc_lens_backend::ssh::executor::{CmdOutput, SshExecutor, SshTarget};
 use sqlx::SqlitePool;
-use std::future::Future;
 
 async fn setup() -> SqlitePool {
     std::env::set_var("NOC_LENS_MASTER_KEY", STANDARD.encode([9u8; 32]));
@@ -17,20 +16,18 @@ async fn setup() -> SqlitePool {
 
 struct OkExecutor;
 impl SshExecutor for OkExecutor {
-    fn run(
+    async fn run(
         &self,
         _t: SshTarget<'_>,
         commands: &[String],
-    ) -> impl Future<Output = Result<Vec<CmdOutput>, noc_lens_backend::AppError>> + Send {
+    ) -> Result<Vec<CmdOutput>, noc_lens_backend::AppError> {
         let n = commands.len();
-        async move {
-            Ok((0..n)
-                .map(|_| CmdOutput {
-                    ok: true,
-                    text: "CPU utilization for five seconds: 30%".to_string(),
-                })
-                .collect())
-        }
+        Ok((0..n)
+            .map(|_| CmdOutput {
+                ok: true,
+                text: "CPU utilization for five seconds: 30%".to_string(),
+            })
+            .collect())
     }
 }
 
@@ -56,8 +53,12 @@ async fn run_group_job_collects_and_records() {
     let d1 = add_device(&pool, "10.7.0.1").await;
     let d2 = add_device(&pool, "10.7.0.2").await;
     let g = group::create(&pool, "排程群組").await.unwrap();
-    group::assign(&pool, &d1, &[g.id.clone()]).await.unwrap();
-    group::assign(&pool, &d2, &[g.id.clone()]).await.unwrap();
+    group::assign(&pool, &d1, std::slice::from_ref(&g.id))
+        .await
+        .unwrap();
+    group::assign(&pool, &d2, std::slice::from_ref(&g.id))
+        .await
+        .unwrap();
 
     let job = schedule::create(
         &pool,

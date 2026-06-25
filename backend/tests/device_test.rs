@@ -74,3 +74,22 @@ async fn update_and_delete_device() {
     let err = device::get(&pool, &created.id).await.unwrap_err();
     assert_eq!(err.code(), "NOT_FOUND");
 }
+
+#[tokio::test]
+async fn update_can_clear_note() {
+    let pool = setup().await;
+    let created = device::create(&pool, new_device("10.0.0.4")).await.unwrap();
+
+    let updated = device::update(
+        &pool,
+        &created.id,
+        UpdateDevice {
+            note: Some(None),
+            ..Default::default()
+        },
+    )
+    .await
+    .unwrap();
+
+    assert_eq!(updated.note, None);
+}

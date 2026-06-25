@@ -13,7 +13,7 @@ use noc_lens_backend::models::{
 use noc_lens_backend::scheduler::run_job_once;
 use noc_lens_backend::services::import::{self, ImportResult};
 use noc_lens_backend::ssh::client::RusshExecutor;
-use noc_lens_backend::ssh::run_query;
+use noc_lens_backend::ssh::{run_query, DEFAULT_QUERY_CONCURRENCY, MAX_QUERY_CONCURRENCY};
 use noc_lens_backend::AppError;
 use serde::Serialize;
 use tauri::State;
@@ -22,7 +22,7 @@ use crate::AppState;
 
 // ---- 設備（Device）----
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn device_list(
     state: State<'_, AppState>,
     group_id: Option<String>,
@@ -30,7 +30,7 @@ pub async fn device_list(
     device::list(&state.pool, group_id.as_deref()).await
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn device_create(
     state: State<'_, AppState>,
     input: NewDevice,
@@ -38,7 +38,7 @@ pub async fn device_create(
     device::create(&state.pool, input).await
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn device_update(
     state: State<'_, AppState>,
     id: String,
@@ -47,12 +47,12 @@ pub async fn device_update(
     device::update(&state.pool, &id, patch).await
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn device_delete(state: State<'_, AppState>, id: String) -> Result<(), AppError> {
     device::delete(&state.pool, &id).await
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn device_import(
     state: State<'_, AppState>,
     content: String,
@@ -62,22 +62,22 @@ pub async fn device_import(
 
 // ---- 群組／標籤（Group）----
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn group_list(state: State<'_, AppState>) -> Result<Vec<Group>, AppError> {
     group::list(&state.pool).await
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn group_create(state: State<'_, AppState>, name: String) -> Result<Group, AppError> {
     group::create(&state.pool, &name).await
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn group_delete(state: State<'_, AppState>, id: String) -> Result<(), AppError> {
     group::delete(&state.pool, &id).await
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn group_assign(
     state: State<'_, AppState>,
     device_id: String,
@@ -86,7 +86,7 @@ pub async fn group_assign(
     group::assign(&state.pool, &device_id, &group_ids).await
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn groups_for_device(
     state: State<'_, AppState>,
     device_id: String,
@@ -96,7 +96,7 @@ pub async fn groups_for_device(
 
 // ---- 即時查詢（SSH）----
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn query_devices(
     state: State<'_, AppState>,
     device_ids: Vec<String>,
@@ -104,11 +104,11 @@ pub async fn query_devices(
     let conc = settings::get(&state.pool, "ssh.max_concurrency")
         .await?
         .and_then(|v| v.parse::<usize>().ok())
-        .unwrap_or(10);
+        .unwrap_or(DEFAULT_QUERY_CONCURRENCY);
     Ok(run_query(&state.pool, &RusshExecutor, &device_ids, conc).await)
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn snapshot_list(
     state: State<'_, AppState>,
     device_id: String,
@@ -119,12 +119,12 @@ pub async fn snapshot_list(
 
 // ---- 排程（Schedule）----
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn schedule_list(state: State<'_, AppState>) -> Result<Vec<ScheduledJob>, AppError> {
     schedule::list(&state.pool).await
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn schedule_create(
     state: State<'_, AppState>,
     input: NewScheduledJob,
@@ -134,14 +134,14 @@ pub async fn schedule_create(
     Ok(job)
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn schedule_delete(state: State<'_, AppState>, id: String) -> Result<(), AppError> {
     schedule::delete(&state.pool, &id).await?;
     state.scheduler.reload().await?;
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn schedule_toggle(
     state: State<'_, AppState>,
     id: String,
@@ -153,12 +153,12 @@ pub async fn schedule_toggle(
 }
 
 /// 立即觸發一次排程執行（供測試與手動巡檢）。
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn schedule_run_now(state: State<'_, AppState>, id: String) -> Result<JobRun, AppError> {
     run_job_once(&state.pool, &RusshExecutor, &id).await
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn job_run_list(
     state: State<'_, AppState>,
     job_id: String,
@@ -168,7 +168,7 @@ pub async fn job_run_list(
 
 // ---- AI 報告（Report）----
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn report_generate(
     state: State<'_, AppState>,
     scope: ReportScope,
@@ -179,8 +179,12 @@ pub async fn report_generate(
         .await?
         .unwrap_or_default();
     let model = settings::get(pool, "ai.model").await?.unwrap_or_default();
-    let key = crypto::get_ai_key()?;
-    if base_url.trim().is_empty() || key.is_none() {
+    let Some(key) = crypto::get_ai_key()? else {
+        return Err(AppError::AiConfigMissing(
+            "請先於設定填入 AI 端點與金鑰".to_string(),
+        ));
+    };
+    if base_url.trim().is_empty() {
         return Err(AppError::AiConfigMissing(
             "請先於設定填入 AI 端點與金鑰".to_string(),
         ));
@@ -190,11 +194,12 @@ pub async fn report_generate(
     } else {
         model
     };
-    let provider = OpenAiProvider::new(base_url.clone(), key.unwrap(), model);
-    ai::generate(pool, &provider, scope, title, Some(&base_url)).await
+    let normalized_base_url = OpenAiProvider::validate_base_url(&base_url)?;
+    let provider = OpenAiProvider::new(normalized_base_url.clone(), key, model)?;
+    ai::generate(pool, &provider, scope, title, Some(&normalized_base_url)).await
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn report_list(state: State<'_, AppState>) -> Result<Vec<Report>, AppError> {
     report::list(&state.pool).await
 }
@@ -210,7 +215,7 @@ pub struct SettingsDto {
     pub ai_key_set: bool,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn settings_get(state: State<'_, AppState>) -> Result<SettingsDto, AppError> {
     let pool = &state.pool;
     let ai_base_url = settings::get(pool, "ai.base_url")
@@ -220,7 +225,8 @@ pub async fn settings_get(state: State<'_, AppState>) -> Result<SettingsDto, App
     let ssh_max_concurrency = settings::get(pool, "ssh.max_concurrency")
         .await?
         .and_then(|v| v.parse::<u32>().ok())
-        .unwrap_or(10);
+        .map(|v| v.min(MAX_QUERY_CONCURRENCY as u32).max(1))
+        .unwrap_or(DEFAULT_QUERY_CONCURRENCY as u32);
     let ai_key_set = crypto::get_ai_key().map(|k| k.is_some()).unwrap_or(false);
     Ok(SettingsDto {
         ai_base_url,
@@ -230,7 +236,7 @@ pub async fn settings_get(state: State<'_, AppState>) -> Result<SettingsDto, App
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn settings_set(
     state: State<'_, AppState>,
     ai_base_url: Option<String>,
@@ -239,21 +245,38 @@ pub async fn settings_set(
 ) -> Result<(), AppError> {
     let pool = &state.pool;
     if let Some(v) = ai_base_url {
-        settings::set(pool, "ai.base_url", &v).await?;
+        let trimmed = v.trim();
+        if trimmed.is_empty() {
+            settings::set(pool, "ai.base_url", "").await?;
+        } else {
+            let normalized = OpenAiProvider::validate_base_url(trimmed)?;
+            settings::set(pool, "ai.base_url", &normalized).await?;
+        }
     }
     if let Some(v) = ai_model {
         settings::set(pool, "ai.model", &v).await?;
     }
     if let Some(v) = ssh_max_concurrency {
+        validate_ssh_concurrency(v)?;
         settings::set(pool, "ssh.max_concurrency", &v.to_string()).await?;
     }
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub async fn settings_set_ai_key(
     _state: State<'_, AppState>,
     api_key: String,
 ) -> Result<(), AppError> {
     crypto::set_ai_key(&api_key)
+}
+
+fn validate_ssh_concurrency(value: u32) -> Result<(), AppError> {
+    if value == 0 || value > MAX_QUERY_CONCURRENCY as u32 {
+        return Err(AppError::Validation(format!(
+            "SSH 同時連線上限需介於 1 到 {}",
+            MAX_QUERY_CONCURRENCY
+        )));
+    }
+    Ok(())
 }

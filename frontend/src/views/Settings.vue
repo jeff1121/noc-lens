@@ -67,6 +67,7 @@ async function saveKey() {
             v-model.number="form.ssh_max_concurrency"
             type="number"
             min="1"
+            max="16"
             class="input w-32"
           />
         </div>

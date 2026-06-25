@@ -7,7 +7,6 @@ use noc_lens_backend::db::{self, device, report};
 use noc_lens_backend::models::{Brand, NewDevice, ReportScope};
 use noc_lens_backend::AppError;
 use sqlx::SqlitePool;
-use std::future::Future;
 
 async fn setup() -> SqlitePool {
     std::env::set_var("NOC_LENS_MASTER_KEY", STANDARD.encode([9u8; 32]));
@@ -17,31 +16,21 @@ async fn setup() -> SqlitePool {
 
 struct MockProvider;
 impl AiProvider for MockProvider {
-    fn complete(
-        &self,
-        _system: &str,
-        user: &str,
-    ) -> impl Future<Output = Result<String, AppError>> + Send {
+    async fn complete(&self, _system: &str, user: &str) -> Result<String, AppError> {
         // 確認 user prompt 含有設備資料
         let has_data = user.contains("device");
-        async move {
-            if has_data {
-                Ok("## 設備健康摘要\n\n整體：1 台正常。".to_string())
-            } else {
-                Ok("無資料".to_string())
-            }
+        if has_data {
+            Ok("## 設備健康摘要\n\n整體：1 台正常。".to_string())
+        } else {
+            Ok("無資料".to_string())
         }
     }
 }
 
 struct FailProvider;
 impl AiProvider for FailProvider {
-    fn complete(
-        &self,
-        _system: &str,
-        _user: &str,
-    ) -> impl Future<Output = Result<String, AppError>> + Send {
-        async { Err(AppError::AiUnavailable("端點逾時".to_string())) }
+    async fn complete(&self, _system: &str, _user: &str) -> Result<String, AppError> {
+        Err(AppError::AiUnavailable("端點逾時".to_string()))
     }
 }
 

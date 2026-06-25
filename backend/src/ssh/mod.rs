@@ -7,4 +7,4 @@ pub mod parsers;
 pub mod query;
 
 pub use executor::{CmdOutput, SshExecutor, SshTarget};
-pub use query::run_query;
+pub use query::{run_query, DEFAULT_QUERY_CONCURRENCY, MAX_QUERY_CONCURRENCY};

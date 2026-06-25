@@ -7,7 +7,6 @@ use noc_lens_backend::models::{Brand, NewDevice};
 use noc_lens_backend::ssh::executor::{CmdOutput, SshExecutor, SshTarget};
 use noc_lens_backend::ssh::run_query;
 use sqlx::SqlitePool;
-use std::future::Future;
 
 async fn setup() -> SqlitePool {
     std::env::set_var("NOC_LENS_MASTER_KEY", STANDARD.encode([9u8; 32]));
@@ -34,36 +33,32 @@ async fn add_device(pool: &SqlitePool, ip: &str) -> String {
 /// 全部指令成功的 mock。
 struct OkExecutor;
 impl SshExecutor for OkExecutor {
-    fn run(
+    async fn run(
         &self,
         _t: SshTarget<'_>,
         commands: &[String],
-    ) -> impl Future<Output = Result<Vec<CmdOutput>, noc_lens_backend::AppError>> + Send {
+    ) -> Result<Vec<CmdOutput>, noc_lens_backend::AppError> {
         let n = commands.len();
-        async move {
-            Ok((0..n)
-                .map(|_| CmdOutput {
-                    ok: true,
-                    text: "CPU utilization for five seconds: 42%".to_string(),
-                })
-                .collect())
-        }
+        Ok((0..n)
+            .map(|_| CmdOutput {
+                ok: true,
+                text: "CPU utilization for five seconds: 42%".to_string(),
+            })
+            .collect())
     }
 }
 
 /// 連線失敗的 mock。
 struct FailExecutor;
 impl SshExecutor for FailExecutor {
-    fn run(
+    async fn run(
         &self,
         _t: SshTarget<'_>,
         _c: &[String],
-    ) -> impl Future<Output = Result<Vec<CmdOutput>, noc_lens_backend::AppError>> + Send {
-        async {
-            Err(noc_lens_backend::AppError::Validation(
-                "連線逾時".to_string(),
-            ))
-        }
+    ) -> Result<Vec<CmdOutput>, noc_lens_backend::AppError> {
+        Err(noc_lens_backend::AppError::Validation(
+            "連線逾時".to_string(),
+        ))
     }
 }
 
@@ -72,7 +67,7 @@ async fn query_success_writes_snapshot() {
     let pool = setup().await;
     let id = add_device(&pool, "10.5.0.1").await;
 
-    let results = run_query(&pool, &OkExecutor, &[id.clone()], 4).await;
+    let results = run_query(&pool, &OkExecutor, std::slice::from_ref(&id), 4).await;
     assert_eq!(results.len(), 1);
     assert_eq!(results[0].status, "ok");
     assert_eq!(
@@ -93,7 +88,7 @@ async fn query_failure_is_isolated() {
     let _fail_id = add_device(&pool, "10.5.0.3").await;
 
     // 一台成功執行器、整體用失敗執行器測單台失敗不影響流程
-    let results = run_query(&pool, &FailExecutor, &[ok_id.clone()], 4).await;
+    let results = run_query(&pool, &FailExecutor, std::slice::from_ref(&ok_id), 4).await;
     assert_eq!(results[0].status, "failed");
     assert!(results[0].error_message.is_some());
 }

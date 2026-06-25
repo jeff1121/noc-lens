@@ -39,7 +39,9 @@ async fn assign_and_filter_by_group() {
     let d2 = device::create(&pool, new_device("10.1.0.2")).await.unwrap();
     let g = group::create(&pool, "高雄高中").await.unwrap();
 
-    group::assign(&pool, &d1.id, &[g.id.clone()]).await.unwrap();
+    group::assign(&pool, &d1.id, std::slice::from_ref(&g.id))
+        .await
+        .unwrap();
 
     // 依群組篩選只應回傳 d1。
     let in_group = device::list(&pool, Some(&g.id)).await.unwrap();
@@ -61,7 +63,9 @@ async fn delete_group_removes_assignment() {
     let pool = setup().await;
     let d = device::create(&pool, new_device("10.1.0.3")).await.unwrap();
     let g = group::create(&pool, "臨時群組").await.unwrap();
-    group::assign(&pool, &d.id, &[g.id.clone()]).await.unwrap();
+    group::assign(&pool, &d.id, std::slice::from_ref(&g.id))
+        .await
+        .unwrap();
 
     group::delete(&pool, &g.id).await.unwrap();
     let groups = group::groups_for_device(&pool, &d.id).await.unwrap();

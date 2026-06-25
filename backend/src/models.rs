@@ -1,6 +1,6 @@
 //! 領域模型與列舉。
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 /// 支援的網路設備品牌。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -63,8 +63,18 @@ pub struct UpdateDevice {
     pub ip_address: Option<String>,
     pub username: Option<String>,
     pub password: Option<String>,
-    pub note: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_nullable_field")]
+    pub note: Option<Option<String>>,
     pub brand: Option<Brand>,
+}
+
+fn deserialize_nullable_field<'de, D, T>(deserializer: D) -> Result<Option<Option<T>>, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    // 區分「欄位未提供」與「明確傳入 null」，讓 PATCH 可以清空 nullable 欄位。
+    Option::<T>::deserialize(deserializer).map(Some)
 }
 
 /// 群組／標籤。

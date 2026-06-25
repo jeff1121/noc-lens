@@ -80,7 +80,10 @@ pub async fn update(pool: &SqlitePool, id: &str, patch: UpdateDevice) -> Result<
 
     let ip = patch.ip_address.unwrap_or(existing.ip_address);
     let username = patch.username.unwrap_or(existing.username);
-    let note = patch.note.or(existing.note);
+    let note = match patch.note {
+        Some(note) => note,
+        None => existing.note,
+    };
     let brand = patch.brand.unwrap_or(existing.brand);
     let now = Utc::now().to_rfc3339();
 

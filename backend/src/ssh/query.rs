@@ -11,6 +11,8 @@ use crate::ssh::{commands, parsers};
 
 const NA: &str = "n/a";
 const SSH_PORT: u16 = 22;
+pub const DEFAULT_QUERY_CONCURRENCY: usize = 10;
+pub const MAX_QUERY_CONCURRENCY: usize = 16;
 
 /// 對多台設備併發執行查詢；逐台回報，單台失敗不影響其他台。
 pub async fn run_query<E>(
@@ -22,7 +24,7 @@ pub async fn run_query<E>(
 where
     E: SshExecutor + Sync,
 {
-    let conc = max_concurrency.max(1);
+    let conc = max_concurrency.clamp(1, MAX_QUERY_CONCURRENCY);
     stream::iter(device_ids.iter().cloned())
         .map(|id| query_one(pool, executor, id))
         .buffer_unordered(conc)

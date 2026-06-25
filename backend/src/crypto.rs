@@ -16,6 +16,7 @@ use rand::RngCore;
 use crate::error::AppError;
 
 const KEYRING_SERVICE: &str = "noc-lens";
+#[cfg(not(test))]
 const KEYRING_ACCOUNT: &str = "master-key";
 const ENV_MASTER_KEY: &str = "NOC_LENS_MASTER_KEY";
 const NONCE_LEN: usize = 12;

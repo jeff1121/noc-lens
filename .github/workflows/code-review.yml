@@ -62,3 +62,7 @@ jobs:
             echo ""
             echo "> 建議：對「需修正」項目於本機執行 \`cargo fmt --all\` 與 \`cargo clippy --fix\` 後再提交。"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 檢查失敗時中止工作
+        if: always() && (steps.fmt.outcome != 'success' || steps.clippy.outcome != 'success' || steps.test.outcome != 'success' || steps.fe.outcome != 'success')
+        run: exit 1
