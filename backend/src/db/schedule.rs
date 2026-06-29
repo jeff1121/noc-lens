@@ -1,11 +1,11 @@
 //! 排程工作（ScheduledJob）與執行紀錄（JobRun）資料存取。
 
-use chrono::Utc;
+use chrono::{NaiveTime, Utc};
 use sqlx::{Row, SqlitePool};
 use uuid::Uuid;
 
 use crate::error::AppError;
-use crate::models::{JobRun, NewScheduledJob, ScheduledJob};
+use crate::models::{JobRun, NewScheduledJob, ScheduledJob, UpdateScheduledJob};
 
 // ---- ScheduledJob ----
 
@@ -26,7 +26,7 @@ pub async fn get(pool: &SqlitePool, id: &str) -> Result<ScheduledJob, AppError> 
 }
 
 pub async fn create(pool: &SqlitePool, input: NewScheduledJob) -> Result<ScheduledJob, AppError> {
-    validate(&input)?;
+    let input = normalize(input)?;
     let id = Uuid::new_v4().to_string();
     let now = Utc::now().to_rfc3339();
     sqlx::query(
@@ -45,6 +45,41 @@ pub async fn create(pool: &SqlitePool, input: NewScheduledJob) -> Result<Schedul
     .execute(pool)
     .await?;
     get(pool, &id).await
+}
+
+pub async fn update(
+    pool: &SqlitePool,
+    id: &str,
+    patch: UpdateScheduledJob,
+) -> Result<ScheduledJob, AppError> {
+    let current = get(pool, id).await?;
+    let merged = normalize(NewScheduledJob {
+        name: patch.name.unwrap_or(current.name),
+        target_type: patch.target_type.unwrap_or(current.target_type),
+        target_id: patch.target_id.unwrap_or(current.target_id),
+        schedule_kind: patch.schedule_kind.unwrap_or(current.schedule_kind),
+        interval_minutes: patch.interval_minutes.unwrap_or(current.interval_minutes),
+        daily_time: patch.daily_time.unwrap_or(current.daily_time),
+    })?;
+
+    let r = sqlx::query(
+        "UPDATE scheduled_job SET \
+         name = ?, target_type = ?, target_id = ?, schedule_kind = ?, interval_minutes = ?, daily_time = ? \
+         WHERE id = ?",
+    )
+    .bind(&merged.name)
+    .bind(&merged.target_type)
+    .bind(&merged.target_id)
+    .bind(&merged.schedule_kind)
+    .bind(merged.interval_minutes)
+    .bind(&merged.daily_time)
+    .bind(id)
+    .execute(pool)
+    .await?;
+    if r.rows_affected() == 0 {
+        return Err(AppError::NotFound(format!("排程 {id}")));
+    }
+    get(pool, id).await
 }
 
 pub async fn set_enabled(
@@ -74,9 +109,17 @@ pub async fn delete(pool: &SqlitePool, id: &str) -> Result<(), AppError> {
     Ok(())
 }
 
-fn validate(input: &NewScheduledJob) -> Result<(), AppError> {
-    if input.name.trim().is_empty() {
+fn normalize(mut input: NewScheduledJob) -> Result<NewScheduledJob, AppError> {
+    input.name = input.name.trim().to_string();
+    input.target_type = input.target_type.trim().to_string();
+    input.target_id = input.target_id.trim().to_string();
+    input.schedule_kind = input.schedule_kind.trim().to_string();
+
+    if input.name.is_empty() {
         return Err(AppError::Validation("排程名稱不可為空".to_string()));
+    }
+    if input.target_id.is_empty() {
+        return Err(AppError::Validation("排程目標不可為空".to_string()));
     }
     match input.target_type.as_str() {
         "device" | "group" => {}
@@ -93,11 +136,17 @@ fn validate(input: &NewScheduledJob) -> Result<(), AppError> {
                     "interval_minutes 須大於 0".to_string(),
                 ));
             }
+            input.daily_time = None;
         }
         "daily" => {
-            if input.daily_time.as_deref().unwrap_or("").is_empty() {
+            let daily_time = input.daily_time.as_deref().unwrap_or("").trim();
+            if daily_time.is_empty() {
                 return Err(AppError::Validation("daily_time 須為 HH:mm".to_string()));
             }
+            NaiveTime::parse_from_str(daily_time, "%H:%M")
+                .map_err(|_| AppError::Validation("daily_time 須為有效 HH:mm".to_string()))?;
+            input.daily_time = Some(daily_time.to_string());
+            input.interval_minutes = None;
         }
         _ => {
             return Err(AppError::Validation(
@@ -105,7 +154,7 @@ fn validate(input: &NewScheduledJob) -> Result<(), AppError> {
             ))
         }
     }
-    Ok(())
+    Ok(input)
 }
 
 fn map_job(row: &sqlx::sqlite::SqliteRow) -> Result<ScheduledJob, AppError> {

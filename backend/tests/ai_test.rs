@@ -3,9 +3,10 @@
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use noc_lens_backend::ai::{generate, AiProvider};
-use noc_lens_backend::db::{self, device, report};
+use noc_lens_backend::db::{self, device, report, snapshot};
 use noc_lens_backend::models::{Brand, NewDevice, ReportScope};
 use noc_lens_backend::AppError;
+use serde_json::{json, Value};
 use sqlx::SqlitePool;
 
 async fn setup() -> SqlitePool {
@@ -37,7 +38,7 @@ impl AiProvider for FailProvider {
 #[tokio::test]
 async fn generate_stores_report() {
     let pool = setup().await;
-    device::create(
+    let device = device::create(
         &pool,
         NewDevice {
             ip_address: "10.9.0.1".to_string(),
@@ -46,6 +47,26 @@ async fn generate_stores_report() {
             note: None,
             brand: Brand::Cisco,
         },
+    )
+    .await
+    .unwrap();
+    snapshot::insert(
+        &pool,
+        &device.id,
+        None,
+        "ok",
+        None,
+        &json!({ "cpu": { "usage_percent": 10.0 }, "memory": { "usage_percent": 40.0 } }),
+    )
+    .await
+    .unwrap();
+    snapshot::insert(
+        &pool,
+        &device.id,
+        None,
+        "ok",
+        None,
+        &json!({ "cpu": { "usage_percent": 30.0 }, "memory": { "usage_percent": 60.0 } }),
     )
     .await
     .unwrap();
@@ -61,6 +82,13 @@ async fn generate_stores_report() {
     .unwrap();
     assert!(rpt.summary_md.contains("設備健康摘要"));
     assert_eq!(rpt.model_endpoint.as_deref(), Some("mock"));
+    let scope: Value = serde_json::from_str(&rpt.scope_json).unwrap();
+    let stored_device = &scope["devices"][0];
+    assert_eq!(stored_device["snapshot_count"], 2);
+    assert_eq!(stored_device["trend"]["cpu_max"], 30.0);
+    assert_eq!(stored_device["trend"]["memory_avg"], 50.0);
+    assert!(!rpt.scope_json.contains("secret"));
+    assert!(!rpt.scope_json.contains("admin"));
 
     let all = report::list(&pool).await.unwrap();
     assert_eq!(all.len(), 1);

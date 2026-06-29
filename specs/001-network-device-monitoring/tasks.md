@@ -84,7 +84,7 @@ description: "Task list for noc-lens network device monitoring"
 - [x] T026 [P] [US1] 前端 群組管理畫面（建立/刪除/指派）in frontend/src/views/Groups.vue
 - [x] T027 [US1] 前端 匯入對話框（選檔、呼叫 device_import、成功/失敗結果列表）in frontend/src/components/ImportDialog.vue
 - [x] T028 [US1] 前端 Pinia store：devices、groups in frontend/src/stores/{devices,groups}.ts
-- [ ] T029 [US1] E2E（head）：匯入 → 指派群組 → 依群組篩選 in e2e/us1.spec.ts
+- [x] T029 [US1] E2E（head）：匯入 → 指派群組 → 依群組篩選 in e2e/tests/user-flows.spec.ts
 
 **Checkpoint**: US1 可獨立運作並通過測試（MVP 可交付）
 
@@ -110,7 +110,7 @@ description: "Task list for noc-lens network device monitoring"
 - [x] T036 [US2] Tauri 指令：query_devices per [contracts/tauri-commands.md](./contracts/tauri-commands.md) in src-tauri/src/commands/query.rs
 - [x] T037 [P] [US2] 前端 DeviceDetail 畫面（結構化狀態、ApexCharts gauge=CPU/Mem、line=trend、skeleton 載入）in frontend/src/views/DeviceDetail.vue
 - [x] T038 [US2] 前端 即時查詢觸發與逐台結果/錯誤呈現（DeviceList 多選查詢 + DeviceDetail）in frontend/src/views/DeviceList.vue、frontend/src/stores/query.ts
-- [ ] T039 [US2] E2E（head）：對設備執行即時查詢並檢視狀態結果 in e2e/us2.spec.ts
+- [x] T039 [US2] E2E（head）：對設備執行即時查詢並檢視狀態結果 in e2e/tests/user-flows.spec.ts
 
 **Checkpoint**: US1 與 US2 皆可獨立運作
 
@@ -135,7 +135,7 @@ description: "Task list for noc-lens network device monitoring"
 - [x] T045 [P] [US3] 前端 Schedules 畫面（建立 interval/daily、啟用切換、執行紀錄明細）in frontend/src/views/Schedules.vue
 - [x] T046 [P] [US3] 前端 設備歷史趨勢分頁（時間序列 line chart）in frontend/src/views/DeviceDetail.vue
 - [x] T047 [US3] 前端 Pinia store：schedules、history in frontend/src/stores/{schedules,history}.ts
-- [ ] T048 [US3] E2E（head）：建立排程 → 觸發 → 檢視歷史 in e2e/us3.spec.ts
+- [x] T048 [US3] E2E（head）：建立排程 → 觸發 → 檢視歷史 in e2e/tests/user-flows.spec.ts
 
 **Checkpoint**: US1/US2/US3 皆可獨立運作
 
@@ -159,7 +159,7 @@ description: "Task list for noc-lens network device monitoring"
 - [x] T053 [US4] Tauri 指令：report_generate/report_list/report_export（md/pdf）in src-tauri/src/commands/report.rs
 - [x] T054 [P] [US4] 前端 Reports 畫面（產生、檢視 Markdown、匯出）in frontend/src/views/Reports.vue
 - [x] T055 [P] [US4] 前端 Settings 畫面（AI base_url/model/金鑰、SSH 併發、雲端隱私提示，FR-027）in frontend/src/views/Settings.vue
-- [ ] T056 [US4] E2E（head）：設定 AI → 產生報告 → 匯出 in e2e/us4.spec.ts
+- [x] T056 [US4] E2E（head）：設定 AI → 產生報告 → 匯出 in e2e/tests/user-flows.spec.ts
 
 **Checkpoint**: 四個使用者故事皆可獨立運作
 

@@ -102,6 +102,15 @@ export interface NewScheduledJob {
   daily_time?: string | null;
 }
 
+export interface UpdateScheduledJob {
+  name?: string;
+  target_type?: "device" | "group";
+  target_id?: string;
+  schedule_kind?: "interval" | "daily";
+  interval_minutes?: number | null;
+  daily_time?: string | null;
+}
+
 export interface JobRun {
   id: string;
   job_id: string;
@@ -126,6 +135,18 @@ export interface ReportScope {
   group_ids?: string[] | null;
   from?: string | null;
   to?: string | null;
+}
+
+export type ExportReportFormat = "md" | "pdf";
+
+export interface ExportReportResult {
+  path: string;
+}
+
+export interface SnapshotListOptions {
+  from?: string | null;
+  to?: string | null;
+  limit?: number | null;
 }
 
 /** 後端錯誤格式（AppError 序列化）。 */
@@ -154,12 +175,26 @@ export const api = {
   // 即時查詢與歷史
   queryDevices: (deviceIds: string[]) =>
     invoke<QueryResult[]>("query_devices", { device_ids: deviceIds }),
-  snapshotList: (deviceId: string, limit?: number) =>
-    invoke<StatusSnapshot[]>("snapshot_list", { device_id: deviceId, limit: limit ?? null }),
+  snapshotList: (deviceId: string, options?: number | SnapshotListOptions) => {
+    const normalized =
+      typeof options === "number"
+        ? { limit: options, from: null, to: null }
+        : {
+            limit: options?.limit ?? null,
+            from: options?.from ?? null,
+            to: options?.to ?? null,
+          };
+    return invoke<StatusSnapshot[]>("snapshot_list", {
+      device_id: deviceId,
+      ...normalized,
+    });
+  },
 
   // 排程
   scheduleList: () => invoke<ScheduledJob[]>("schedule_list"),
   scheduleCreate: (input: NewScheduledJob) => invoke<ScheduledJob>("schedule_create", { input }),
+  scheduleUpdate: (id: string, patch: UpdateScheduledJob) =>
+    invoke<ScheduledJob>("schedule_update", { id, patch }),
   scheduleDelete: (id: string) => invoke<void>("schedule_delete", { id }),
   scheduleToggle: (id: string, enabled: boolean) =>
     invoke<ScheduledJob>("schedule_toggle", { id, enabled }),
@@ -170,6 +205,8 @@ export const api = {
   reportGenerate: (scope: ReportScope, title?: string) =>
     invoke<Report>("report_generate", { scope, title: title ?? null }),
   reportList: () => invoke<Report[]>("report_list"),
+  reportExport: (id: string, outPath: string, format: ExportReportFormat) =>
+    invoke<ExportReportResult>("report_export", { id, out_path: outPath, format }),
 
   // 設定
   settingsGet: () => invoke<Settings>("settings_get"),

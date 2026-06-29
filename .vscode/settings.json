@@ -8,7 +8,16 @@
     },
     "chat.tools.terminal.autoApprove": {
         ".specify/scripts/bash/": true,
-        ".specify/scripts/powershell/": true
+        ".specify/scripts/powershell/": true,
+        "/^git -C /Users/jeff/Documents/repos/noc-lens push origin main 2>&1 \\| cat$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "git pull": true,
+        "/^git -C /Users/jeff/Documents/repos/noc-lens pull --all 2>&1 \\| cat$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }
 

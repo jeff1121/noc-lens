@@ -3,7 +3,7 @@
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use noc_lens_backend::db::{self, device, group, schedule, snapshot};
-use noc_lens_backend::models::{Brand, NewDevice, NewScheduledJob};
+use noc_lens_backend::models::{Brand, NewDevice, NewScheduledJob, UpdateScheduledJob};
 use noc_lens_backend::scheduler::run_job_once;
 use noc_lens_backend::ssh::executor::{CmdOutput, SshExecutor, SshTarget};
 use sqlx::SqlitePool;
@@ -143,4 +143,72 @@ async fn toggle_and_delete_schedule() {
 
     schedule::delete(&pool, &job.id).await.unwrap();
     assert!(schedule::get(&pool, &job.id).await.is_err());
+}
+
+#[tokio::test]
+async fn update_schedule_changes_interval_to_daily() {
+    let pool = setup().await;
+    let job = schedule::create(
+        &pool,
+        NewScheduledJob {
+            name: "可更新".to_string(),
+            target_type: "device".to_string(),
+            target_id: "x".to_string(),
+            schedule_kind: "interval".to_string(),
+            interval_minutes: Some(30),
+            daily_time: Some("08:00".to_string()),
+        },
+    )
+    .await
+    .unwrap();
+
+    let updated = schedule::update(
+        &pool,
+        &job.id,
+        UpdateScheduledJob {
+            schedule_kind: Some("daily".to_string()),
+            daily_time: Some(Some("09:15".to_string())),
+            ..Default::default()
+        },
+    )
+    .await
+    .unwrap();
+
+    assert_eq!(updated.schedule_kind, "daily");
+    assert_eq!(updated.daily_time.as_deref(), Some("09:15"));
+    assert_eq!(updated.interval_minutes, None);
+}
+
+#[tokio::test]
+async fn update_schedule_rejects_invalid_patch_without_mutating() {
+    let pool = setup().await;
+    let job = schedule::create(
+        &pool,
+        NewScheduledJob {
+            name: "原排程".to_string(),
+            target_type: "device".to_string(),
+            target_id: "x".to_string(),
+            schedule_kind: "interval".to_string(),
+            interval_minutes: Some(30),
+            daily_time: None,
+        },
+    )
+    .await
+    .unwrap();
+
+    let err = schedule::update(
+        &pool,
+        &job.id,
+        UpdateScheduledJob {
+            interval_minutes: Some(Some(0)),
+            ..Default::default()
+        },
+    )
+    .await
+    .unwrap_err();
+    assert_eq!(err.code(), "VALIDATION");
+
+    let unchanged = schedule::get(&pool, &job.id).await.unwrap();
+    assert_eq!(unchanged.name, "原排程");
+    assert_eq!(unchanged.interval_minutes, Some(30));
 }

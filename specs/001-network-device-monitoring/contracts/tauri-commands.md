@@ -1,6 +1,6 @@
 # 契約：Tauri IPC 指令（前端 ↔ Rust 後端）
 
-**功能**：[../spec.md](../spec.md) ｜ **日期**：2026-06-24
+**功能**：[../spec.md](../spec.md) ｜ **日期**：2026-06-26
 
 前端透過 Tauri `invoke(<command>, <args>)` 呼叫後端。下列為對外介面契約：指令名稱、輸入、輸出與錯誤。所有指令回傳 `Result<T, AppError>`；`AppError` 含 `code`（字串列舉）與 `message`（zh-TW）。
 
@@ -16,9 +16,9 @@
 | `device_create` | `{ ip_address, username, password, note?, brand }` | `Device` | `VALIDATION`, `DUPLICATE_IP`, `UNSUPPORTED_BRAND` |
 | `device_update` | `{ id, ...patch }` | `Device` | `NOT_FOUND`, `VALIDATION` |
 | `device_delete` | `{ id }` | `void` | `NOT_FOUND` |
-| `device_import` | `{ csv_path }` | `{ success: number, failed: { row, reason }[] }` | `FILE_ERROR`, `PARSE_ERROR` |
+| `device_import` | `{ content }` | `{ success: number, failed: { row, reason }[] }` | `FILE_ERROR`, `PARSE_ERROR` |
 
-- `device_import` 解析 CSV（欄位至少 `ip_address,username,password,note`，可含 `brand`、`groups`）；逐列回報成功與失敗原因（FR-002）。
+- `device_import` 由前端讀取 CSV 檔案後傳入文字內容（欄位至少 `ip_address,username,password,brand`，可含 `note`、`groups`）；逐列回報成功與失敗原因（FR-002）。
 
 ## 群組／標籤（Group）— 對應 US1 / FR-003,004
 
@@ -28,6 +28,9 @@
 | `group_create` | `{ name }` | `Group` | `VALIDATION`, `DUPLICATE_NAME` |
 | `group_delete` | `{ id }` | `void` | `NOT_FOUND` |
 | `group_assign` | `{ device_id, group_ids: string[] }` | `void` | `NOT_FOUND` |
+| `groups_for_device` | `{ device_id }` | `Group[]` | `NOT_FOUND` |
+
+- `group_assign` 為覆寫式指派；呼叫端必須傳入該設備完整群組 id 清單。
 
 ## 即時查詢（SSH Query）— 對應 US2 / FR-006~012
 
@@ -49,13 +52,19 @@
 | `schedule_update` | `{ id, ...patch }` | `ScheduledJob` | `NOT_FOUND`, `VALIDATION` |
 | `schedule_delete` | `{ id }` | `void` | `NOT_FOUND` |
 | `schedule_toggle` | `{ id, enabled }` | `ScheduledJob` | `NOT_FOUND` |
+| `schedule_run_now` | `{ id }` | `JobRun` | `NOT_FOUND`, `DB_ERROR` |
 | `job_run_list` | `{ job_id }` | `JobRun[]` | `NOT_FOUND` |
+
+- `schedule_update` 的 `interval_minutes` 與 `daily_time` 可傳 `null` 清空；固定間隔排程會清空 `daily_time`，每日排程會清空 `interval_minutes`。
 
 ## 歷史資料（History）— 對應 US3 / FR-016
 
 | 指令 | 輸入 | 輸出 | 主要錯誤碼 |
 |------|------|------|-----------|
-| `snapshot_list` | `{ device_id, from?, to? }` | `StatusSnapshot[]`（依 collected_at 排序） | `NOT_FOUND` |
+| `snapshot_list` | `{ device_id, from?, to?, limit? }` | `StatusSnapshot[]`（依 collected_at 新到舊排序） | `NOT_FOUND`, `VALIDATION` |
+
+- 未提供 `from/to` 時預設回傳最近 50 筆；提供期間且未提供 `limit` 時回傳整個期間資料。
+- `from/to` 必須為 RFC3339 字串，後端會正規化為 UTC 後查詢。
 
 ## AI 報告（Report）— 對應 US4 / FR-018~022
 
@@ -65,6 +74,8 @@
 | `report_list` | `{}` | `Report[]` | `DB_ERROR` |
 | `report_export` | `{ id, out_path, format: "md"|"pdf" }` | `{ path }` | `NOT_FOUND`, `FILE_ERROR` |
 
+- `report_generate` 會依 `scope.from/to` 查詢期間快照，並在送交 AI 前彙整 latest、trend、snapshot_count 與精簡 snapshots。
+- `report_export` 由 Tauri 後端寫入指定路徑；`md` 保留完整 Markdown，`pdf` 產生基本 PDF 檔供離線保存。
 - `AI_UNAVAILABLE`：AI 端點不可用時明確提示，且不影響既有狀態資料（FR-021）。
 
 ## 設定（Settings）— 對應 FR-027 / 安全

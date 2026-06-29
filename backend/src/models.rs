@@ -136,6 +136,17 @@ pub struct NewScheduledJob {
     pub daily_time: Option<String>,
 }
 
+/// 更新排程的輸入（欄位皆為選填）。
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct UpdateScheduledJob {
+    pub name: Option<String>,
+    pub target_type: Option<String>,
+    pub target_id: Option<String>,
+    pub schedule_kind: Option<String>,
+    pub interval_minutes: Option<Option<i64>>,
+    pub daily_time: Option<Option<String>>,
+}
+
 /// 排程執行紀錄。
 #[derive(Debug, Clone, Serialize)]
 pub struct JobRun {

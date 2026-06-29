@@ -3,12 +3,14 @@
 //! 對應 contracts/tauri-commands.md。所有指令回傳 `Result<T, AppError>`，
 //! `AppError` 會序列化為 `{ code, message }`。
 
+use std::{fs, path::Path};
+
 use noc_lens_backend::ai::{self, OpenAiProvider};
 use noc_lens_backend::crypto;
 use noc_lens_backend::db::{device, group, report, schedule, settings, snapshot};
 use noc_lens_backend::models::{
     Device, Group, JobRun, NewDevice, NewScheduledJob, QueryResult, Report, ReportScope,
-    ScheduledJob, StatusSnapshot, UpdateDevice,
+    ScheduledJob, StatusSnapshot, UpdateDevice, UpdateScheduledJob,
 };
 use noc_lens_backend::scheduler::run_job_once;
 use noc_lens_backend::services::import::{self, ImportResult};
@@ -112,9 +114,24 @@ pub async fn query_devices(
 pub async fn snapshot_list(
     state: State<'_, AppState>,
     device_id: String,
+    from: Option<String>,
+    to: Option<String>,
     limit: Option<i64>,
 ) -> Result<Vec<StatusSnapshot>, AppError> {
-    snapshot::list_by_device(&state.pool, &device_id, limit.unwrap_or(50)).await
+    device::get(&state.pool, &device_id).await?;
+    let resolved_limit = if from.is_none() && to.is_none() {
+        limit.or(Some(50))
+    } else {
+        limit
+    };
+    snapshot::list_by_device_filtered(
+        &state.pool,
+        &device_id,
+        from.as_deref(),
+        to.as_deref(),
+        resolved_limit,
+    )
+    .await
 }
 
 // ---- 排程（Schedule）----
@@ -130,6 +147,17 @@ pub async fn schedule_create(
     input: NewScheduledJob,
 ) -> Result<ScheduledJob, AppError> {
     let job = schedule::create(&state.pool, input).await?;
+    state.scheduler.reload().await?;
+    Ok(job)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub async fn schedule_update(
+    state: State<'_, AppState>,
+    id: String,
+    patch: UpdateScheduledJob,
+) -> Result<ScheduledJob, AppError> {
+    let job = schedule::update(&state.pool, &id, patch).await?;
     state.scheduler.reload().await?;
     Ok(job)
 }
@@ -202,6 +230,35 @@ pub async fn report_generate(
 #[tauri::command(rename_all = "snake_case")]
 pub async fn report_list(state: State<'_, AppState>) -> Result<Vec<Report>, AppError> {
     report::list(&state.pool).await
+}
+
+#[derive(Serialize)]
+pub struct ReportExportResult {
+    pub path: String,
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub async fn report_export(
+    state: State<'_, AppState>,
+    id: String,
+    out_path: String,
+    format: String,
+) -> Result<ReportExportResult, AppError> {
+    let trimmed_path = out_path.trim();
+    if trimmed_path.is_empty() {
+        return Err(AppError::Validation("匯出路徑不可為空".to_string()));
+    }
+
+    let report = report::get(&state.pool, &id).await?;
+    match format.trim().to_ascii_lowercase().as_str() {
+        "md" => write_report_markdown(Path::new(trimmed_path), &report)?,
+        "pdf" => write_report_pdf(Path::new(trimmed_path), &report)?,
+        _ => return Err(AppError::Validation("format 須為 md 或 pdf".to_string())),
+    }
+
+    Ok(ReportExportResult {
+        path: trimmed_path.to_string(),
+    })
 }
 
 // ---- 設定（Settings）----
@@ -279,4 +336,135 @@ fn validate_ssh_concurrency(value: u32) -> Result<(), AppError> {
         )));
     }
     Ok(())
+}
+
+fn write_report_markdown(path: &Path, report: &Report) -> Result<(), AppError> {
+    let mut content = String::new();
+    content.push_str("# ");
+    content.push_str(&report.title);
+    content.push_str("\n\n");
+    content.push_str("- 產生時間：");
+    content.push_str(&report.generated_at);
+    content.push('\n');
+    if let Some(endpoint) = &report.model_endpoint {
+        content.push_str("- 模型端點：");
+        content.push_str(endpoint);
+        content.push('\n');
+    }
+    content.push_str("\n---\n\n");
+    content.push_str(&report.summary_md);
+    fs::write(path, content)?;
+    Ok(())
+}
+
+fn write_report_pdf(path: &Path, report: &Report) -> Result<(), AppError> {
+    let mut lines = Vec::new();
+    lines.push(report.title.clone());
+    lines.push(format!("產生時間：{}", report.generated_at));
+    if let Some(endpoint) = &report.model_endpoint {
+        lines.push(format!("模型端點：{endpoint}"));
+    }
+    lines.push(String::new());
+    for line in report.summary_md.lines() {
+        lines.extend(wrap_pdf_line(line, 72));
+    }
+    if lines.is_empty() {
+        lines.push(String::new());
+    }
+
+    let pages = lines
+        .chunks(45)
+        .map(|chunk| chunk.to_vec())
+        .collect::<Vec<_>>();
+    let font_obj = 3 + pages.len() * 2;
+    let mut objects = Vec::new();
+    objects.push("<< /Type /Catalog /Pages 2 0 R >>".to_string());
+    let kids = (0..pages.len())
+        .map(|i| format!("{} 0 R", 3 + i * 2))
+        .collect::<Vec<_>>()
+        .join(" ");
+    objects.push(format!(
+        "<< /Type /Pages /Kids [{kids}] /Count {} >>",
+        pages.len()
+    ));
+
+    for (index, page_lines) in pages.iter().enumerate() {
+        let page_obj = 3 + index * 2;
+        let content_obj = page_obj + 1;
+        objects.push(format!(
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] \
+             /Resources << /Font << /F1 {font_obj} 0 R >> >> /Contents {content_obj} 0 R >>"
+        ));
+        let content = pdf_page_stream(page_lines);
+        objects.push(format!(
+            "<< /Length {} >>\nstream\n{}endstream",
+            content.len(),
+            content
+        ));
+    }
+
+    objects.push("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>".to_string());
+
+    let mut bytes = b"%PDF-1.4\n%\xE2\xE3\xCF\xD3\n".to_vec();
+    let mut offsets = Vec::new();
+    for (idx, object) in objects.iter().enumerate() {
+        offsets.push(bytes.len());
+        bytes.extend_from_slice(format!("{} 0 obj\n{}\nendobj\n", idx + 1, object).as_bytes());
+    }
+    let xref_offset = bytes.len();
+    bytes.extend_from_slice(format!("xref\n0 {}\n", objects.len() + 1).as_bytes());
+    bytes.extend_from_slice(b"0000000000 65535 f \n");
+    for offset in offsets {
+        bytes.extend_from_slice(format!("{offset:010} 00000 n \n").as_bytes());
+    }
+    bytes.extend_from_slice(
+        format!(
+            "trailer\n<< /Size {} /Root 1 0 R >>\nstartxref\n{xref_offset}\n%%EOF\n",
+            objects.len() + 1
+        )
+        .as_bytes(),
+    );
+    fs::write(path, bytes)?;
+    Ok(())
+}
+
+fn pdf_page_stream(lines: &[String]) -> String {
+    let mut stream = String::from("BT\n/F1 11 Tf\n50 800 Td\n15 TL\n");
+    for line in lines {
+        stream.push_str(&pdf_utf16_hex(line));
+        stream.push_str(" Tj\nT*\n");
+    }
+    stream.push_str("ET\n");
+    stream
+}
+
+fn pdf_utf16_hex(value: &str) -> String {
+    let mut bytes = vec![0xFE, 0xFF];
+    for unit in value.encode_utf16() {
+        bytes.push((unit >> 8) as u8);
+        bytes.push((unit & 0xFF) as u8);
+    }
+    let hex = bytes
+        .iter()
+        .map(|byte| format!("{byte:02X}"))
+        .collect::<String>();
+    format!("<{hex}>")
+}
+
+fn wrap_pdf_line(line: &str, width: usize) -> Vec<String> {
+    if line.is_empty() {
+        return vec![String::new()];
+    }
+    let mut wrapped = Vec::new();
+    let mut current = String::new();
+    for ch in line.chars() {
+        current.push(ch);
+        if current.chars().count() >= width {
+            wrapped.push(std::mem::take(&mut current));
+        }
+    }
+    if !current.is_empty() {
+        wrapped.push(current);
+    }
+    wrapped
 }

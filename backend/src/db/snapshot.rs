@@ -1,6 +1,6 @@
 //! 狀態快照（StatusSnapshot）資料存取。
 
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use sqlx::{Row, SqlitePool};
 use uuid::Uuid;
 
@@ -42,15 +42,49 @@ pub async fn list_by_device(
     device_id: &str,
     limit: i64,
 ) -> Result<Vec<StatusSnapshot>, AppError> {
+    list_by_device_filtered(pool, device_id, None, None, Some(limit)).await
+}
+
+/// 列出某設備指定期間的歷史快照（依採集時間新到舊）。
+pub async fn list_by_device_filtered(
+    pool: &SqlitePool,
+    device_id: &str,
+    from: Option<&str>,
+    to: Option<&str>,
+    limit: Option<i64>,
+) -> Result<Vec<StatusSnapshot>, AppError> {
+    let from = normalize_time(from)?;
+    let to = normalize_time(to)?;
+    if let (Some(from), Some(to)) = (&from, &to) {
+        if from > to {
+            return Err(AppError::Validation("from 不可晚於 to".to_string()));
+        }
+    }
+    let limit = limit.map(|v| v.clamp(1, 500)).unwrap_or(-1);
     let rows = sqlx::query(
         "SELECT * FROM status_snapshot WHERE device_id = ? \
+         AND (? IS NULL OR collected_at >= ?) \
+         AND (? IS NULL OR collected_at <= ?) \
          ORDER BY collected_at DESC LIMIT ?",
     )
     .bind(device_id)
+    .bind(from.as_deref())
+    .bind(from.as_deref())
+    .bind(to.as_deref())
+    .bind(to.as_deref())
     .bind(limit)
     .fetch_all(pool)
     .await?;
     rows.iter().map(map_snapshot).collect()
+}
+
+fn normalize_time(value: Option<&str>) -> Result<Option<String>, AppError> {
+    let Some(value) = value.map(str::trim).filter(|v| !v.is_empty()) else {
+        return Ok(None);
+    };
+    let dt = DateTime::parse_from_rfc3339(value)
+        .map_err(|_| AppError::Validation("時間格式須為 RFC3339".to_string()))?;
+    Ok(Some(dt.with_timezone(&Utc).to_rfc3339()))
 }
 
 fn map_snapshot(row: &sqlx::sqlite::SqliteRow) -> Result<StatusSnapshot, AppError> {

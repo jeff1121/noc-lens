@@ -1,8 +1,6 @@
 import { test, expect } from "@playwright/test";
 
 // 煙霧測試：前端外殼與導覽可正常渲染（head 模式）。
-// 註：實際設備資料流程（匯入/查詢/排程/報告）依賴 Tauri IPC，
-// 需於桌面應用（cargo tauri dev）內以 head 模式驗證，對應 US1–US4 的獨立測試情境。
 test("側邊導覽與主要畫面可渲染", async ({ page }) => {
   await page.goto("/");
 
