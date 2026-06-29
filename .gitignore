@@ -1,7 +1,7 @@
 # Rust / Cargo
 /target
 **/target
-Cargo.lock
+# 注意：noc-lens 為應用程式，Cargo.lock 須入版控以利依賴漏洞掃描（OSV/Trivy），不忽略
 
 # Node / 前端
 node_modules/

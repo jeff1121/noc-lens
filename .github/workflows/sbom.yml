@@ -1,0 +1,50 @@
+name: sbom
+
+# 發版時產生軟體物料清單（SBOM）並附到 GitHub Release：
+# - Syft：語言覆蓋最廣，輸出 SPDX 與 CycloneDX。
+# - Trivy：補充輸出 CycloneDX，並可比對 SBOM 漏洞。
+# 建議：兩者皆產，比對哪個對本專案最完整後擇優保留。
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syft 產生 SBOM（SPDX + CycloneDX）
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          artifact-name: noc-lens.spdx.json
+          format: spdx-json
+          output-file: noc-lens.spdx.json
+
+      - name: Trivy 產生 SBOM（CycloneDX）
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          format: cyclonedx
+          output: noc-lens.cyclonedx.json
+
+      - name: 上傳 SBOM 為流程產物
+        uses: actions/upload-artifact@v4
+        with:
+          name: noc-lens-sbom
+          path: |
+            noc-lens.spdx.json
+            noc-lens.cyclonedx.json
+
+      - name: 附加 SBOM 至 Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            noc-lens.spdx.json
+            noc-lens.cyclonedx.json

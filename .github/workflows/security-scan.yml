@@ -1,0 +1,70 @@
+name: security-scan
+
+# 供應鏈依賴漏洞掃描（與 CodeQL 並列）：
+# - OSV-Scanner：比對 Google OSV 資料庫，精準揪出有已知漏洞的依賴。
+# - Trivy：檔案系統掃描，補充 OSV 並可同時用於 SBOM。
+# 結果上傳 GitHub Security → Code scanning，並產生繁體中文摘要。
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 2 * * 1" # 每週一 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  osv-scanner:
+    name: OSV-Scanner 依賴漏洞掃描
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 執行 OSV-Scanner
+        id: osv
+        continue-on-error: true
+        uses: google/osv-scanner-action@v2.2.2
+        with:
+          scan-args: |-
+            --recursive
+            --lockfile=Cargo.lock
+            --lockfile=frontend/package-lock.json
+            --format=sarif
+            --output=osv-results.sarif
+      - name: 上傳 SARIF 至 Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: osv-results.sarif
+          category: osv-scanner
+      - name: 繁體中文摘要
+        if: always()
+        run: |
+          echo "## OSV-Scanner 結果：${{ steps.osv.outcome == 'success' && '✅ 無已知漏洞' || '⚠ 偵測到依賴漏洞，詳見 Security → Code scanning' }}" >> "$GITHUB_STEP_SUMMARY"
+
+  trivy-scan:
+    name: Trivy 漏洞掃描
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 執行 Trivy（檔案系統）
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scanners: vuln,secret
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+      - name: 上傳 SARIF 至 Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy
+      - name: 繁體中文摘要
+        if: always()
+        run: |
+          echo "## Trivy 掃描已完成，CRITICAL/HIGH 弱點詳見 Security → Code scanning" >> "$GITHUB_STEP_SUMMARY"
